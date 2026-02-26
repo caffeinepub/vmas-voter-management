@@ -1,0 +1,248 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* Navy civic palette */
+    --background: 0.97 0.006 240;
+    --foreground: 0.18 0.03 255;
+
+    --card: 1 0 0;
+    --card-foreground: 0.18 0.03 255;
+
+    --popover: 1 0 0;
+    --popover-foreground: 0.18 0.03 255;
+
+    /* Deep navy primary #0b0854 */
+    --primary: 0.16 0.13 264;
+    --primary-foreground: 0.99 0 0;
+
+    --secondary: 0.94 0.01 240;
+    --secondary-foreground: 0.28 0.06 255;
+
+    --muted: 0.94 0.008 240;
+    --muted-foreground: 0.52 0.03 250;
+
+    --accent: 0.92 0.02 240;
+    --accent-foreground: 0.25 0.07 260;
+
+    --destructive: 0.59 0.22 25;
+    --destructive-foreground: 0.99 0 0;
+
+    --border: 0.88 0.015 240;
+    --input: 0.88 0.015 240;
+    --ring: 0.16 0.13 264;
+
+    /* Charts */
+    --chart-1: 0.38 0.14 260;
+    --chart-2: 0.55 0.17 145;
+    --chart-3: 0.72 0.18 55;
+    --chart-4: 0.60 0.22 25;
+    --chart-5: 0.68 0.15 310;
+
+    /* Sidebar — deep navy #0b0854 */
+    --sidebar: 0.16 0.13 264;
+    --sidebar-foreground: 0.92 0.01 240;
+    --sidebar-primary: 0.75 0.12 220;
+    --sidebar-primary-foreground: 0.18 0.04 255;
+    --sidebar-accent: 0.27 0.08 258;
+    --sidebar-accent-foreground: 0.95 0.01 240;
+    --sidebar-border: 0.28 0.06 258;
+    --sidebar-ring: 0.55 0.14 250;
+
+    /* Semantic extras */
+    --supporter: 0.55 0.17 145;
+    --neutral-color: 0.72 0.18 75;
+    --opponent: 0.59 0.22 25;
+  }
+
+  .dark {
+    --background: 0.13 0.03 260;
+    --foreground: 0.93 0.01 240;
+
+    --card: 0.18 0.04 258;
+    --card-foreground: 0.93 0.01 240;
+
+    --popover: 0.22 0.05 258;
+    --popover-foreground: 0.93 0.01 240;
+
+    --primary: 0.68 0.15 220;
+    --primary-foreground: 0.13 0.03 260;
+
+    --secondary: 0.25 0.06 258;
+    --secondary-foreground: 0.88 0.01 240;
+
+    --muted: 0.25 0.05 258;
+    --muted-foreground: 0.60 0.04 250;
+
+    --accent: 0.28 0.07 258;
+    --accent-foreground: 0.90 0.01 240;
+
+    --destructive: 0.65 0.21 25;
+    --destructive-foreground: 0.99 0 0;
+
+    --border: 0.28 0.05 258;
+    --input: 0.28 0.05 258;
+    --ring: 0.55 0.14 250;
+
+    --chart-1: 0.60 0.18 220;
+    --chart-2: 0.62 0.18 145;
+    --chart-3: 0.78 0.18 75;
+    --chart-4: 0.68 0.22 25;
+    --chart-5: 0.70 0.17 310;
+
+    --sidebar: 0.12 0.10 264;
+    --sidebar-foreground: 0.90 0.01 240;
+    --sidebar-primary: 0.65 0.15 220;
+    --sidebar-primary-foreground: 0.13 0.03 260;
+    --sidebar-accent: 0.22 0.06 260;
+    --sidebar-accent-foreground: 0.90 0.01 240;
+    --sidebar-border: 0.25 0.05 260;
+    --sidebar-ring: 0.55 0.14 250;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3 {
+    font-family: 'Libre Baskerville', Georgia, serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Libre Baskerville', Georgia, serif;
+  }
+  .font-mono-data {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-150;
+    color: #ffffff;
+  }
+
+  .sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
+  }
+
+  .sidebar-nav-item.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border-left: 3px solid #ffffff;
+    padding-left: calc(0.75rem - 3px);
+  }
+
+  .badge-supporter {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    background: oklch(0.90 0.10 145);
+    color: oklch(0.25 0.12 145);
+  }
+
+  .badge-neutral {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    background: oklch(0.92 0.12 75);
+    color: oklch(0.35 0.14 75);
+  }
+
+  .badge-opponent {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    background: oklch(0.92 0.10 25);
+    color: oklch(0.35 0.18 25);
+  }
+
+  .star-filled {
+    color: #0b0854;
+  }
+  .star-empty {
+    color: oklch(0.80 0.01 240);
+  }
+
+  .section-card {
+    @apply bg-card rounded-lg border border-border p-5 mb-4;
+  }
+
+  .section-title {
+    @apply text-sm font-semibold uppercase tracking-wider mb-4;
+    color: oklch(var(--muted-foreground));
+  }
+
+  /* Global select trigger background */
+  [data-slot="select-trigger"] {
+    background-color: #e3dec5 !important;
+  }
+
+  /* Filter panel select triggers: white background, white text, white border */
+  .filter-select-trigger[data-slot="select-trigger"] {
+    background-color: #ffffff !important;
+    color: #0b0854 !important;
+    border-color: #ffffff !important;
+  }
+
+  /* Select content (dropdown list) solid white background */
+  [data-slot="select-content"] {
+    background-color: #ffffff !important;
+  }
+
+  /* Print styles */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #print-area, #print-area * {
+      visibility: visible;
+    }
+    #print-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    .label-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4mm;
+      padding: 10mm;
+    }
+    .label-card {
+      border: 1px solid #ccc;
+      padding: 4mm;
+      break-inside: avoid;
+      font-size: 9pt;
+      font-family: Arial, sans-serif;
+    }
+    .label-card .label-name {
+      font-size: 11pt;
+      font-weight: bold;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 2mm;
+      padding-bottom: 1mm;
+    }
+    .label-card .label-field {
+      display: flex;
+      gap: 2mm;
+      margin-bottom: 0.5mm;
+    }
+    .label-card .label-key {
+      font-weight: 600;
+      min-width: 24mm;
+      color: #555;
+    }
+    .no-print {
+      display: none !important;
+    }
+  }
+}
