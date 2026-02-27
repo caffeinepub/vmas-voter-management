@@ -101,7 +101,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
         </div>
         <div>
           <div className="font-display text-base font-bold leading-tight text-white">
-            VMAS
+            SurveyMitra
           </div>
           <div className="text-xs text-white opacity-60">
             Voter Management
@@ -220,7 +220,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
           </Button>
           <div className="flex items-center gap-2">
             <Vote className="w-5 h-5 text-white" />
-            <span className="font-display font-bold text-base text-white">VMAS</span>
+            <span className="font-display font-bold text-base text-white">SurveyMitra</span>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <Badge variant="outline" className="text-xs text-white border-white/50">{ROLE_LABELS[user.role]}</Badge>

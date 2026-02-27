@@ -56,7 +56,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             style={{ background: 'oklch(0.68 0.15 220 / 0.2)', border: '1px solid oklch(0.68 0.15 220 / 0.3)' }}>
             <Vote className="w-8 h-8" style={{ color: 'oklch(0.78 0.14 220)' }} />
           </div>
-          <h1 className="font-display text-3xl font-bold text-white mb-1">VMAS</h1>
+          <h1 className="font-display text-3xl font-bold text-white mb-1">SurveyMitra</h1>
           <p className="text-sm" style={{ color: 'oklch(0.75 0.04 250)' }}>
             Voter Management & Analytics System
           </p>

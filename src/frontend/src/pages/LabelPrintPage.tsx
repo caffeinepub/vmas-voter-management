@@ -143,7 +143,7 @@ export default function LabelPrintPage() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Voter Labels — VMAS</title>
+        <title>Voter Labels — SurveyMitra</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: Arial, sans-serif; font-size: 9pt; }
