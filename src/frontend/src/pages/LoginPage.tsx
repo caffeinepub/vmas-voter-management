@@ -137,9 +137,9 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs mt-4 text-white">
+        <p className="text-center text-xs mt-4" style={{ color: '#e3dec5' }}>
           © 2026. Built with ❤️ using{' '}
-          <a href="https://caffeine.ai" className="underline opacity-80 hover:opacity-100">caffeine.ai</a>
+          <a href="https://caffeine.ai" className="underline opacity-80 hover:opacity-100" style={{ color: '#e3dec5' }}>caffeine.ai</a>
         </p>
       </div>
     </div>
