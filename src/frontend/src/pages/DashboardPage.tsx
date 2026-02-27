@@ -292,15 +292,22 @@ export default function DashboardPage() {
             <CardTitle className="text-base font-semibold">Education Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-56">
+            <div className="h-64">
               {educationData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={educationData} layout="vertical" margin={{ left: 8, right: 16, top: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11 }} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
+                  <BarChart data={educationData} margin={{ left: 8, right: 16, top: 8, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" height={60} tick={(props) => {
+                      const { x, y, payload } = props as { x: number; y: number; payload: { value: string } };
+                      return (
+                        <g transform={`translate(${x},${y})`}>
+                          <text x={0} y={0} dy={10} textAnchor="end" fontSize={10} transform="rotate(-35)">{payload.value}</text>
+                        </g>
+                      );
+                    }} />
+                    <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
-                    <Bar dataKey="value" fill="#06b6d4" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="value" fill="#06b6d4" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : <EmptyChart />}
@@ -314,15 +321,22 @@ export default function DashboardPage() {
             <CardTitle className="text-base font-semibold">Profession Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-56">
+            <div className="h-64">
               {professionData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={professionData} layout="vertical" margin={{ left: 8, right: 16, top: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11 }} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={110} />
+                  <BarChart data={professionData} margin={{ left: 8, right: 16, top: 8, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" height={60} tick={(props) => {
+                      const { x, y, payload } = props as { x: number; y: number; payload: { value: string } };
+                      return (
+                        <g transform={`translate(${x},${y})`}>
+                          <text x={0} y={0} dy={10} textAnchor="end" fontSize={10} transform="rotate(-35)">{payload.value}</text>
+                        </g>
+                      );
+                    }} />
+                    <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
-                    <Bar dataKey="value" fill="#a855f7" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="value" fill="#a855f7" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : <EmptyChart />}

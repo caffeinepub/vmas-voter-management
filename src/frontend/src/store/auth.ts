@@ -1,6 +1,10 @@
 import { getUsers, getSessions, setSessions } from './storage';
 import type { Session, User } from './types';
 
+export function getAllUsers(): User[] {
+  return getUsers();
+}
+
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
 function generateToken(): string {

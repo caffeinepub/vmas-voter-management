@@ -9,6 +9,8 @@ import VoterFormPage from './pages/VoterFormPage';
 import VoterDetailPage from './pages/VoterDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import LabelPrintPage from './pages/LabelPrintPage';
+import MessagingPage from './pages/MessagingPage';
+import TasksPage from './pages/TasksPage';
 import { seedDefaultData } from './store/storage';
 
 // Seed default data on load
@@ -83,6 +85,10 @@ function AppRouter() {
         return user?.role !== 'superAdmin' ? <AccessDenied /> : <SettingsPage />;
       case 'label-print':
         return user?.role !== 'superAdmin' ? <AccessDenied /> : <LabelPrintPage />;
+      case 'messaging':
+        return <MessagingPage />;
+      case 'tasks':
+        return <TasksPage />;
       default:
         return <DashboardPage />;
     }

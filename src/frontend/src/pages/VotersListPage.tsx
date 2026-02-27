@@ -6,7 +6,7 @@ import type { VoterRecord, VoterFilterState } from '../store/types';
 import type { PageRoute } from '../components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -19,10 +19,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import {
   Search, Filter, Download, Trash2, Edit, Eye, ChevronLeft, ChevronRight,
-  X, Star,
+  X, Star, MessageSquare, AlertCircle, Copy,
 } from 'lucide-react';
 
 const PAGE_SIZE = 20;
@@ -66,6 +73,8 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<VoterRecord | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [smsDialogOpen, setSmsDialogOpen] = useState(false);
 
   const educationOptions = useMemo(() => getOptionsByCategory('education'), []);
   const isSuperAdmin = user?.role === 'superAdmin';
@@ -81,6 +90,7 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
   const updateFilter = useCallback(<K extends keyof VoterFilterState>(key: K, value: VoterFilterState[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setPage(1);
+    setSelectedIds(new Set());
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -89,11 +99,54 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
       categoryLabel: '', gender: '', birthdayMonth: '', caste: '', organizationName: '',
     });
     setPage(1);
+    setSelectedIds(new Set());
   }, []);
 
   const activeFilterCount = Object.entries(filters)
     .filter(([k, v]) => k !== 'search' && v !== '')
     .length;
+
+  const allPageSelected = paginatedVoters.length > 0 && paginatedVoters.every(v => selectedIds.has(v.id));
+  const somePageSelected = paginatedVoters.some(v => selectedIds.has(v.id));
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (allPageSelected) {
+        for (const v of paginatedVoters) next.delete(v.id);
+      } else {
+        for (const v of paginatedVoters) next.add(v.id);
+      }
+      return next;
+    });
+  }, [allPageSelected, paginatedVoters]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectedVoters = useMemo(
+    () => filteredVoters.filter(v => selectedIds.has(v.id)),
+    [filteredVoters, selectedIds],
+  );
+
+  const handleCopyMobiles = useCallback(() => {
+    const mobiles = selectedVoters.map(v => v.mobile).filter(Boolean).join(', ');
+    if (!mobiles) {
+      toast.error('No mobile numbers available for selected voters.');
+      return;
+    }
+    navigator.clipboard.writeText(mobiles).then(() => {
+      toast.success('Mobile numbers copied to clipboard');
+    }).catch(() => {
+      toast.error('Failed to copy to clipboard.');
+    });
+  }, [selectedVoters]);
 
   const handleDelete = useCallback(() => {
     if (!deleteTarget) return;
@@ -123,7 +176,18 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
           <h1 className="font-display text-2xl font-bold" style={{ color: '#0b0854' }}>Voters</h1>
           <p className="text-sm text-muted-foreground">{filteredVoters.length} voter{filteredVoters.length !== 1 ? 's' : ''}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {selectedIds.size > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 border-[#0b0854] text-[#0b0854] hover:bg-[#0b0854]/10"
+              onClick={() => setSmsDialogOpen(true)}
+            >
+              <MessageSquare className="w-4 h-4" />
+              Send SMS ({selectedIds.size})
+            </Button>
+          )}
           {isSuperAdmin && (
             <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-2">
               <Download className="w-4 h-4" />
@@ -293,6 +357,14 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border" style={{ background: 'oklch(0.96 0.008 240)' }}>
+                <th className="px-3 py-2.5 w-8">
+                  <Checkbox
+                    checked={allPageSelected}
+                    data-state={somePageSelected && !allPageSelected ? 'indeterminate' : undefined}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Select all on page"
+                  />
+                </th>
                 <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">Photo</th>
                 <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">Voter ID</th>
                 <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">Name</th>
@@ -307,7 +379,7 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
             <tbody>
               {paginatedVoters.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
+                  <td colSpan={10} className="px-4 py-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
                       <Search className="w-8 h-8 opacity-30" />
                       <span>No voters found matching your criteria</span>
@@ -323,6 +395,13 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
                   className="border-b border-border last:border-0 hover:bg-accent/50 transition-colors"
                   style={idx % 2 === 1 ? { background: 'oklch(0.98 0.004 240)' } : undefined}
                 >
+                  <td className="px-3 py-2.5 w-8">
+                    <Checkbox
+                      checked={selectedIds.has(voter.id)}
+                      onCheckedChange={() => toggleSelect(voter.id)}
+                      aria-label={`Select ${voter.fullName}`}
+                    />
+                  </td>
                   <td className="px-3 py-2.5">
                     <Avatar className="w-8 h-8">
                       {voter.photoUrl && <AvatarImage src={voter.photoUrl} alt={voter.fullName} />}
@@ -434,6 +513,41 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* SMS Not Available Dialog */}
+      <Dialog open={smsDialogOpen} onOpenChange={setSmsDialogOpen}>
+        <DialogContent className="bg-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-5 h-5" />
+              SMS Not Available
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+              Direct SMS integration is not available yet. Please contact your administrator to enable SMS service.
+            </div>
+            <p className="text-sm text-muted-foreground">
+              You have selected <strong>{selectedIds.size}</strong> voter{selectedIds.size !== 1 ? 's' : ''}.
+              You can copy their mobile numbers and use an external SMS tool.
+            </p>
+          </div>
+          <DialogFooter className="flex gap-2 sm:justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={handleCopyMobiles}
+            >
+              <Copy className="w-4 h-4" />
+              Copy Mobile Numbers
+            </Button>
+            <Button size="sm" onClick={() => setSmsDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -16,6 +16,8 @@ import {
   ChevronRight,
   Moon,
   Sun,
+  MessageSquare,
+  ClipboardList,
 } from 'lucide-react';
 import type { UserRole } from '../store/types';
 
@@ -26,7 +28,9 @@ export type PageRoute =
   | 'voter-edit'
   | 'voter-detail'
   | 'settings'
-  | 'label-print';
+  | 'label-print'
+  | 'messaging'
+  | 'tasks';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -45,6 +49,8 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['superAdmin', 'dataEntry', 'viewer'] },
   { id: 'voters', label: 'Voters', icon: Users, roles: ['superAdmin', 'dataEntry', 'viewer'] },
   { id: 'voter-add', label: 'Add Voter', icon: UserPlus, roles: ['superAdmin', 'dataEntry'] },
+  { id: 'messaging', label: 'Messaging', icon: MessageSquare, roles: ['superAdmin', 'dataEntry', 'viewer'] },
+  { id: 'tasks', label: 'Tasks', icon: ClipboardList, roles: ['superAdmin', 'dataEntry', 'viewer'] },
   { id: 'settings', label: 'Settings', icon: Settings, roles: ['superAdmin'] },
   { id: 'label-print', label: 'Label Print', icon: Printer, roles: ['superAdmin'] },
 ];

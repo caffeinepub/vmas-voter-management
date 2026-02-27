@@ -91,3 +91,31 @@ export type VoterFilterState = {
   caste: string;
   organizationName: string;
 };
+
+export interface MessageTemplate {
+  id: string;
+  name: string;
+  genderTag: 'Male' | 'Female' | 'All';
+  body: string; // can contain {name}, {voterId}, {mobile} placeholders
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type TaskType = 'Follow-up Call' | 'Field Visit' | 'Campaign Event' | 'Other';
+export type TaskStatus = 'Pending' | 'In Progress' | 'Done';
+
+export interface Task {
+  id: string;
+  title: string;
+  taskType: TaskType;
+  assignedTo: string; // userId
+  assignedToName: string; // username for display
+  linkedVoterId?: string;
+  linkedVoterName?: string;
+  dueDate?: string; // ISO date string
+  status: TaskStatus;
+  notes?: string;
+  createdAt: number;
+  updatedAt: number;
+  createdBy: string; // userId
+}
