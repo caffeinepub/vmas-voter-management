@@ -377,9 +377,8 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      <footer className="text-center text-xs text-muted-foreground pb-4">
-        © 2026. Built with ❤️ using{' '}
-        <a href="https://caffeine.ai" className="underline hover:opacity-80">caffeine.ai</a>
+      <footer className="text-center text-xs pb-4" style={{ color: '#000000' }}>
+        © 2026. Built by SJ
       </footer>
     </div>
   );
