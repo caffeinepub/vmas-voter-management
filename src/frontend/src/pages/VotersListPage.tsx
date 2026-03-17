@@ -708,7 +708,8 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
             <Button
               variant="outline"
               size="sm"
-              className="gap-2 border-[#0b0854] text-[#0b0854] hover:bg-[#0b0854]/10"
+              className="gap-2"
+              style={{ borderColor: "#0b0854", color: "#0b0854" }}
               onClick={() => setPrintLabelsDialogOpen(true)}
             >
               <Printer className="w-4 h-4" />
@@ -721,6 +722,7 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
               size="sm"
               onClick={handleExportCSV}
               className="gap-2"
+              style={{ borderColor: "#0b0854", color: "#0b0854" }}
             >
               <Download className="w-4 h-4" />
               Export CSV
@@ -730,7 +732,9 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
             <Button
               size="sm"
               onClick={() => onNavigate("voter-add")}
-              className="gap-2"
+              className="gap-2 hover:opacity-90"
+              data-ocid="voters.add_voter.primary_button"
+              style={{ background: "#0b0854", color: "white" }}
             >
               + Add Voter
             </Button>
@@ -932,8 +936,8 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
           <table className="w-full text-sm">
             <thead>
               <tr
-                className="border-b border-border"
-                style={{ background: "oklch(0.96 0.008 240)" }}
+                className="border-b border-[#0b0854]/30"
+                style={{ background: "#0b0854" }}
               >
                 <th className="px-3 py-2.5 w-8">
                   <Checkbox
@@ -945,33 +949,34 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
                     }
                     onCheckedChange={toggleSelectAll}
                     aria-label="Select all on page"
+                    className="border-white/60 data-[state=checked]:bg-white data-[state=checked]:text-[#0b0854]"
                   />
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-white/80">
                   Photo
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-white/80">
                   Voter ID
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-white">
                   Name
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-white/80">
                   Mobile
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-white/80">
                   Ward
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-white/80">
                   Booth
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-white/80">
                   Category
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2.5 text-left font-semibold text-xs uppercase tracking-wide text-white/80">
                   Influence
                 </th>
-                <th className="px-3 py-2.5 text-right font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2.5 text-right font-semibold text-xs uppercase tracking-wide text-white/80">
                   Actions
                 </th>
               </tr>
@@ -1002,7 +1007,7 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
                 paginatedVoters.map((voter, idx) => (
                   <tr
                     key={voter.id}
-                    className="border-b border-border last:border-0 hover:bg-accent/50 transition-colors"
+                    className="border-b border-border last:border-0 hover:bg-[#0b0854]/5 transition-colors"
                     style={
                       idx % 2 === 1
                         ? { background: "oklch(0.98 0.004 240)" }
@@ -1063,7 +1068,7 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0"
+                          className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                           onClick={() => onNavigate("voter-detail", voter.id)}
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -1072,7 +1077,7 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 w-7 p-0"
+                            className="h-7 w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                             onClick={() => onNavigate("voter-edit", voter.id)}
                           >
                             <Edit className="w-3.5 h-3.5" />
@@ -1147,6 +1152,11 @@ export default function VotersListPage({ onNavigate }: VotersListPageProps) {
                   variant={pageNum === page ? "default" : "outline"}
                   size="sm"
                   className="h-7 w-7 p-0 text-xs"
+                  style={
+                    pageNum === page
+                      ? { background: "#0b0854", color: "white" }
+                      : undefined
+                  }
                   onClick={() => setPage(pageNum)}
                 >
                   {pageNum}
