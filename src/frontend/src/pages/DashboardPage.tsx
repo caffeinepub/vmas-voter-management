@@ -1,20 +1,48 @@
-import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format, startOfMonth, subMonths } from "date-fns";
 import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LineChart, Line, Legend,
-} from 'recharts';
-import { Users, TrendingUp, Heart, ThumbsDown, Calendar, UserCheck } from 'lucide-react';
-import { getAllVoters } from '../store/voters';
-import { format, subMonths, startOfMonth } from 'date-fns';
+  Calendar,
+  Heart,
+  ThumbsDown,
+  TrendingUp,
+  UserCheck,
+  Users,
+} from "lucide-react";
+import type React from "react";
+import { useMemo } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { getAllVoters } from "../store/voters";
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Supporter: '#16c784',
-  Neutral:   '#f97316',
-  Opponent:  '#ef4444',
+  Supporter: "#16c784",
+  Neutral: "#f97316",
+  Opponent: "#ef4444",
 };
 
-const CHART_COLORS = ['#0b0854', '#16c784', '#f97316', '#ef4444', '#a855f7', '#ec4899', '#06b6d4', '#eab308'];
+const CHART_COLORS = [
+  "#0b0854",
+  "#16c784",
+  "#f97316",
+  "#ef4444",
+  "#a855f7",
+  "#ec4899",
+  "#06b6d4",
+  "#eab308",
+];
 
 interface StatCardProps {
   title: string;
@@ -24,27 +52,43 @@ interface StatCardProps {
   subtitle?: string;
 }
 
-function StatCard({ title, value, icon: Icon, color, subtitle }: StatCardProps) {
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+  subtitle,
+}: StatCardProps) {
   return (
     <Card className="relative overflow-hidden">
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-muted-foreground font-medium mb-1">{title}</p>
+            <p className="text-sm text-muted-foreground font-medium mb-1">
+              {title}
+            </p>
             <p className="text-3xl font-bold font-mono-data">{value}</p>
-            {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+            {subtitle && (
+              <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+            )}
           </div>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: color + '1a' }}>
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: `${color}1a` }}
+          >
             <Icon className="w-5 h-5" style={{ color }} />
           </div>
         </div>
       </CardContent>
-      <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: color }} />
+      <div
+        className="absolute bottom-0 left-0 right-0 h-0.5"
+        style={{ background: color }}
+      />
     </Card>
   );
 }
 
-function EmptyChart({ message = 'No data available' }: { message?: string }) {
+function EmptyChart({ message = "No data available" }: { message?: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
       <div className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center mb-2">
@@ -60,17 +104,21 @@ export default function DashboardPage() {
 
   const stats = useMemo(() => {
     const total = voters.length;
-    const supporters = voters.filter(v => v.categoryLabel === 'Supporter').length;
-    const neutrals = voters.filter(v => v.categoryLabel === 'Neutral').length;
-    const opponents = voters.filter(v => v.categoryLabel === 'Opponent').length;
-    const volunteers = voters.filter(v => v.isVolunteer).length;
+    const supporters = voters.filter(
+      (v) => v.categoryLabel === "Supporter",
+    ).length;
+    const neutrals = voters.filter((v) => v.categoryLabel === "Neutral").length;
+    const opponents = voters.filter(
+      (v) => v.categoryLabel === "Opponent",
+    ).length;
+    const volunteers = voters.filter((v) => v.isVolunteer).length;
     return { total, supporters, neutrals, opponents, volunteers };
   }, [voters]);
 
   const categoryData = useMemo(() => {
     const map: Record<string, number> = {};
     for (const v of voters) {
-      const key = v.categoryLabel || 'Unknown';
+      const key = v.categoryLabel || "Unknown";
       map[key] = (map[key] || 0) + 1;
     }
     return Object.entries(map).map(([name, value]) => ({ name, value }));
@@ -79,7 +127,7 @@ export default function DashboardPage() {
   const genderData = useMemo(() => {
     const map: Record<string, number> = {};
     for (const v of voters) {
-      const key = v.gender || 'Unknown';
+      const key = v.gender || "Unknown";
       map[key] = (map[key] || 0) + 1;
     }
     return Object.entries(map).map(([name, value]) => ({ name, value }));
@@ -115,15 +163,26 @@ export default function DashboardPage() {
     const now = new Date();
     const months = Array.from({ length: 12 }, (_, i) => {
       const d = subMonths(now, 11 - i);
-      return { month: format(d, 'MMM yy'), start: startOfMonth(d).getTime(), count: 0 };
+      return {
+        month: format(d, "MMM yy"),
+        start: startOfMonth(d).getTime(),
+        count: 0,
+      };
     });
 
     for (const v of voters) {
       const ts = v.createdAt;
       for (const m of months) {
-        const monthDate = new Date(m.start);
-        const nextMonth = subMonths(startOfMonth(new Date()), 11 - months.indexOf(m) - 1);
-        if (ts >= m.start && ts < nextMonth.getTime() + (m === months[months.length - 1] ? 999999999 : 0)) {
+        const nextMonth = subMonths(
+          startOfMonth(new Date()),
+          11 - months.indexOf(m) - 1,
+        );
+        if (
+          ts >= m.start &&
+          ts <
+            nextMonth.getTime() +
+              (m === months[months.length - 1] ? 999999999 : 0)
+        ) {
           m.count++;
           break;
         }
@@ -133,16 +192,19 @@ export default function DashboardPage() {
     // Cumulative approach: per-month count
     const perMonth: Record<string, number> = {};
     for (const v of voters) {
-      const monthKey = format(new Date(v.createdAt), 'MMM yy');
+      const monthKey = format(new Date(v.createdAt), "MMM yy");
       perMonth[monthKey] = (perMonth[monthKey] || 0) + 1;
     }
 
-    return months.map(m => ({ month: m.month, voters: perMonth[m.month] || 0 }));
+    return months.map((m) => ({
+      month: m.month,
+      voters: perMonth[m.month] || 0,
+    }));
   }, [voters]);
 
   const birthdayVoters = useMemo(() => {
     const currentMonth = new Date().getMonth();
-    return voters.filter(v => {
+    return voters.filter((v) => {
       if (!v.dateOfBirth) return false;
       return new Date(v.dateOfBirth).getMonth() === currentMonth;
     });
@@ -152,7 +214,12 @@ export default function DashboardPage() {
     <div className="p-6 space-y-6">
       {/* Page Title */}
       <div>
-        <h1 className="font-display text-2xl font-bold" style={{ color: '#0b0854' }}>Dashboard</h1>
+        <h1
+          className="font-display text-2xl font-bold"
+          style={{ color: "#0b0854" }}
+        >
+          Dashboard
+        </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Overview of voter data and analytics
         </p>
@@ -172,40 +239,57 @@ export default function DashboardPage() {
           value={stats.supporters}
           icon={UserCheck}
           color="#16c784"
-          subtitle={stats.total > 0 ? `${Math.round((stats.supporters / stats.total) * 100)}%` : '0%'}
+          subtitle={
+            stats.total > 0
+              ? `${Math.round((stats.supporters / stats.total) * 100)}%`
+              : "0%"
+          }
         />
         <StatCard
           title="Neutrals"
           value={stats.neutrals}
           icon={TrendingUp}
           color="#f97316"
-          subtitle={stats.total > 0 ? `${Math.round((stats.neutrals / stats.total) * 100)}%` : '0%'}
+          subtitle={
+            stats.total > 0
+              ? `${Math.round((stats.neutrals / stats.total) * 100)}%`
+              : "0%"
+          }
         />
         <StatCard
           title="Opponents"
           value={stats.opponents}
           icon={ThumbsDown}
           color="#ef4444"
-          subtitle={stats.total > 0 ? `${Math.round((stats.opponents / stats.total) * 100)}%` : '0%'}
+          subtitle={
+            stats.total > 0
+              ? `${Math.round((stats.opponents / stats.total) * 100)}%`
+              : "0%"
+          }
         />
       </div>
 
       {/* Birthday Alert */}
       {birthdayVoters.length > 0 && (
-        <Card className="border-l-4" style={{ borderLeftColor: '#d97706' }}>
+        <Card className="border-l-4" style={{ borderLeftColor: "#d97706" }}>
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                style={{ background: '#fef3c7' }}>
-                <Calendar className="w-5 h-5" style={{ color: '#d97706' }} />
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                style={{ background: "#fef3c7" }}
+              >
+                <Calendar className="w-5 h-5" style={{ color: "#d97706" }} />
               </div>
               <div>
                 <div className="font-semibold text-sm mb-1">
-                  🎂 {birthdayVoters.length} Birthday{birthdayVoters.length > 1 ? 's' : ''} This Month
+                  🎂 {birthdayVoters.length} Birthday
+                  {birthdayVoters.length > 1 ? "s" : ""} This Month
                 </div>
                 <div className="text-sm text-muted-foreground flex flex-wrap gap-x-2">
-                  {birthdayVoters.slice(0, 8).map(v => (
-                    <span key={v.id} className="font-medium text-foreground">{v.fullName}</span>
+                  {birthdayVoters.slice(0, 8).map((v) => (
+                    <span key={v.id} className="font-medium text-foreground">
+                      {v.fullName}
+                    </span>
                   ))}
                   {birthdayVoters.length > 8 && (
                     <span>and {birthdayVoters.length - 8} more…</span>
@@ -222,7 +306,9 @@ export default function DashboardPage() {
         {/* Category Pie */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Category Distribution</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              Category Distribution
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-52">
@@ -239,14 +325,22 @@ export default function DashboardPage() {
                       dataKey="value"
                     >
                       {categoryData.map((entry, idx) => (
-                        <Cell key={entry.name} fill={CATEGORY_COLORS[entry.name] || CHART_COLORS[idx % CHART_COLORS.length]} />
+                        <Cell
+                          key={entry.name}
+                          fill={
+                            CATEGORY_COLORS[entry.name] ||
+                            CHART_COLORS[idx % CHART_COLORS.length]
+                          }
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
-              ) : <EmptyChart />}
+              ) : (
+                <EmptyChart />
+              )}
             </div>
           </CardContent>
         </Card>
@@ -254,7 +348,9 @@ export default function DashboardPage() {
         {/* Gender Pie */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Gender Distribution</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              Gender Distribution
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-52">
@@ -271,14 +367,19 @@ export default function DashboardPage() {
                       dataKey="value"
                     >
                       {genderData.map((entry, idx) => (
-                        <Cell key={entry.name} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                        <Cell
+                          key={entry.name}
+                          fill={CHART_COLORS[idx % CHART_COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
-              ) : <EmptyChart />}
+              ) : (
+                <EmptyChart />
+              )}
             </div>
           </CardContent>
         </Card>
@@ -289,28 +390,52 @@ export default function DashboardPage() {
         {/* Education Bar */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Education Breakdown</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              Education Breakdown
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               {educationData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={educationData} margin={{ left: 8, right: 16, top: 8, bottom: 60 }}>
+                  <BarChart
+                    data={educationData}
+                    margin={{ left: 8, right: 16, top: 8, bottom: 60 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" height={60} tick={(props) => {
-                      const { x, y, payload } = props as { x: number; y: number; payload: { value: string } };
-                      return (
-                        <g transform={`translate(${x},${y})`}>
-                          <text x={0} y={0} dy={10} textAnchor="end" fontSize={10} transform="rotate(-35)">{payload.value}</text>
-                        </g>
-                      );
-                    }} />
+                    <XAxis
+                      dataKey="name"
+                      height={60}
+                      tick={(props) => {
+                        const { x, y, payload } = props as {
+                          x: number;
+                          y: number;
+                          payload: { value: string };
+                        };
+                        return (
+                          <g transform={`translate(${x},${y})`}>
+                            <text
+                              x={0}
+                              y={0}
+                              dy={10}
+                              textAnchor="end"
+                              fontSize={10}
+                              transform="rotate(-35)"
+                            >
+                              {payload.value}
+                            </text>
+                          </g>
+                        );
+                      }}
+                    />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
                     <Bar dataKey="value" fill="#06b6d4" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              ) : <EmptyChart />}
+              ) : (
+                <EmptyChart />
+              )}
             </div>
           </CardContent>
         </Card>
@@ -318,28 +443,52 @@ export default function DashboardPage() {
         {/* Profession Bar */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Profession Breakdown</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              Profession Breakdown
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               {professionData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={professionData} margin={{ left: 8, right: 16, top: 8, bottom: 60 }}>
+                  <BarChart
+                    data={professionData}
+                    margin={{ left: 8, right: 16, top: 8, bottom: 60 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" height={60} tick={(props) => {
-                      const { x, y, payload } = props as { x: number; y: number; payload: { value: string } };
-                      return (
-                        <g transform={`translate(${x},${y})`}>
-                          <text x={0} y={0} dy={10} textAnchor="end" fontSize={10} transform="rotate(-35)">{payload.value}</text>
-                        </g>
-                      );
-                    }} />
+                    <XAxis
+                      dataKey="name"
+                      height={60}
+                      tick={(props) => {
+                        const { x, y, payload } = props as {
+                          x: number;
+                          y: number;
+                          payload: { value: string };
+                        };
+                        return (
+                          <g transform={`translate(${x},${y})`}>
+                            <text
+                              x={0}
+                              y={0}
+                              dy={10}
+                              textAnchor="end"
+                              fontSize={10}
+                              transform="rotate(-35)"
+                            >
+                              {payload.value}
+                            </text>
+                          </g>
+                        );
+                      }}
+                    />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
                     <Bar dataKey="value" fill="#a855f7" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              ) : <EmptyChart />}
+              ) : (
+                <EmptyChart />
+              )}
             </div>
           </CardContent>
         </Card>
@@ -355,9 +504,12 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="h-52">
-            {growthData.some(d => d.voters > 0) ? (
+            {growthData.some((d) => d.voters > 0) ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={growthData} margin={{ left: 0, right: 16, top: 8, bottom: 0 }}>
+                <LineChart
+                  data={growthData}
+                  margin={{ left: 0, right: 16, top: 8, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
@@ -367,17 +519,19 @@ export default function DashboardPage() {
                     dataKey="voters"
                     stroke="#f97316"
                     strokeWidth={2.5}
-                    dot={{ r: 4, fill: '#f97316' }}
+                    dot={{ r: 4, fill: "#f97316" }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
-            ) : <EmptyChart message="No voters added yet — register some voters to see growth trends" />}
+            ) : (
+              <EmptyChart message="No voters added yet — register some voters to see growth trends" />
+            )}
           </div>
         </CardContent>
       </Card>
 
-      <footer className="text-center text-xs pb-4" style={{ color: '#000000' }}>
+      <footer className="text-center text-xs pb-4" style={{ color: "#000000" }}>
         © 2026. Built by SJ
       </footer>
     </div>

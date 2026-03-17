@@ -68,8 +68,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-        display: ["'Libre Baskerville'", "Georgia", "serif"],
+        sans: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        display: ["'Bricolage Grotesque'", "system-ui", "sans-serif"],
         mono: ["'IBM Plex Mono'", "monospace"],
       },
       borderRadius: {
@@ -79,6 +79,8 @@ export default {
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
+        card: "0 2px 12px rgba(11,8,84,0.06), 0 1px 3px rgba(11,8,84,0.04)",
+        "card-hover": "0 8px 24px rgba(11,8,84,0.12), 0 2px 6px rgba(11,8,84,0.06)",
       },
       keyframes: {
         "accordion-down": {

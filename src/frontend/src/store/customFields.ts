@@ -1,5 +1,5 @@
-import { getCustomFields, setCustomFields } from './storage';
-import type { CustomField, CustomFieldType } from './types';
+import { getCustomFields, setCustomFields } from "./storage";
+import type { CustomField, CustomFieldType } from "./types";
 
 function generateId(): string {
   return `cf_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -12,15 +12,16 @@ export function getAllCustomFields(): CustomField[] {
 export function addCustomField(
   label: string,
   fieldType: CustomFieldType,
-  options: string[]
+  options: string[],
 ): CustomField {
   const fields = getCustomFields();
-  const maxOrder = fields.length > 0 ? Math.max(...fields.map(f => f.sortOrder)) : 0;
+  const maxOrder =
+    fields.length > 0 ? Math.max(...fields.map((f) => f.sortOrder)) : 0;
   const newField: CustomField = {
     fieldId: generateId(),
     label: label.trim(),
     fieldType,
-    options: options.map(o => o.trim()).filter(Boolean),
+    options: options.map((o) => o.trim()).filter(Boolean),
     sortOrder: maxOrder + 1,
     createdAt: Date.now(),
   };
@@ -31,7 +32,7 @@ export function addCustomField(
 
 export function deleteCustomField(fieldId: string): boolean {
   const fields = getCustomFields();
-  const filtered = fields.filter(f => f.fieldId !== fieldId);
+  const filtered = fields.filter((f) => f.fieldId !== fieldId);
   if (filtered.length === fields.length) return false;
   setCustomFields(filtered);
   return true;

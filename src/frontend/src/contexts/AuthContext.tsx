@@ -1,8 +1,21 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import type { User } from '../store/types';
-import { login as authLogin, logout as authLogout, getCurrentUser, refreshSession } from '../store/auth';
+import type React from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  login as authLogin,
+  logout as authLogout,
+  getCurrentUser,
+  refreshSession,
+} from "../store/auth";
+import type { User } from "../store/types";
 
-const SESSION_KEY = 'vmas_current_session';
+const SESSION_KEY = "vmas_current_session";
 
 interface AuthContextValue {
   user: User | null;
@@ -46,8 +59,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!token) return;
-    const events = ['mousedown', 'keydown', 'touchstart', 'scroll'];
-    for (const e of events) window.addEventListener(e, handleActivity, { passive: true });
+    const events = ["mousedown", "keydown", "touchstart", "scroll"];
+    for (const e of events)
+      window.addEventListener(e, handleActivity, { passive: true });
     return () => {
       for (const e of events) window.removeEventListener(e, handleActivity);
     };
@@ -97,14 +111,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      token,
-      isAuthenticated: !!user,
-      isLoading,
-      login,
-      logout,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -112,6 +128,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 }

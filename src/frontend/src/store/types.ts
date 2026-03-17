@@ -1,4 +1,4 @@
-export type UserRole = 'superAdmin' | 'dataEntry' | 'viewer';
+export type UserRole = "superAdmin" | "dataEntry" | "viewer";
 
 export interface User {
   userId: string;
@@ -22,7 +22,13 @@ export interface DropdownOption {
   sortOrder: number;
 }
 
-export type CustomFieldType = 'text' | 'number' | 'date' | 'yesno' | 'dropdown' | 'multiselect';
+export type CustomFieldType =
+  | "text"
+  | "number"
+  | "date"
+  | "yesno"
+  | "dropdown"
+  | "multiselect";
 
 export interface CustomField {
   fieldId: string;
@@ -95,14 +101,18 @@ export type VoterFilterState = {
 export interface MessageTemplate {
   id: string;
   name: string;
-  genderTag: 'Male' | 'Female' | 'All';
+  genderTag: "Male" | "Female" | "All";
   body: string; // can contain {name}, {voterId}, {mobile} placeholders
   createdAt: number;
   updatedAt: number;
 }
 
-export type TaskType = 'Follow-up Call' | 'Field Visit' | 'Campaign Event' | 'Other';
-export type TaskStatus = 'Pending' | 'In Progress' | 'Done';
+export type TaskType =
+  | "Follow-up Call"
+  | "Field Visit"
+  | "Campaign Event"
+  | "Other";
+export type TaskStatus = "Pending" | "In Progress" | "Done";
 
 export interface Task {
   id: string;

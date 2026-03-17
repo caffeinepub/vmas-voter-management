@@ -1,19 +1,3 @@
-import React, { useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { getAllTemplates, saveTemplate, deleteTemplate } from '../store/messaging';
-import type { MessageTemplate } from '../store/types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,23 +7,53 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { toast } from 'sonner';
-import { MessageSquare, Plus, Edit, Trash2, ExternalLink, MessagesSquare } from 'lucide-react';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Edit,
+  ExternalLink,
+  MessageSquare,
+  MessagesSquare,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { toast } from "sonner";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  deleteTemplate,
+  getAllTemplates,
+  saveTemplate,
+} from "../store/messaging";
+import type { MessageTemplate } from "../store/types";
 
-type GenderTag = 'Male' | 'Female' | 'All';
+type GenderTag = "Male" | "Female" | "All";
 
-const GENDER_TAG_STYLES: Record<GenderTag, { bg: string; text: string; label: string }> = {
-  Male:   { bg: '#0b0854', text: '#ffffff', label: 'Male' },
-  Female: { bg: '#ec4899', text: '#ffffff', label: 'Female' },
-  All:    { bg: '#16c784', text: '#ffffff', label: 'All' },
+const GENDER_TAG_STYLES: Record<
+  GenderTag,
+  { bg: string; text: string; label: string }
+> = {
+  Male: { bg: "#0b0854", text: "#ffffff", label: "Male" },
+  Female: { bg: "#ec4899", text: "#ffffff", label: "Female" },
+  All: { bg: "#16c784", text: "#ffffff", label: "All" },
 };
 
 interface TemplateFormState {
@@ -49,9 +63,9 @@ interface TemplateFormState {
 }
 
 const EMPTY_FORM: TemplateFormState = {
-  name: '',
-  genderTag: 'All',
-  body: '',
+  name: "",
+  genderTag: "All",
+  body: "",
 };
 
 function GenderBadge({ tag }: { tag: GenderTag }) {
@@ -68,12 +82,16 @@ function GenderBadge({ tag }: { tag: GenderTag }) {
 
 export default function MessagingPage() {
   const { user } = useAuth();
-  const isSuperAdmin = user?.role === 'superAdmin';
+  const isSuperAdmin = user?.role === "superAdmin";
 
-  const [templates, setTemplates] = useState<MessageTemplate[]>(() => getAllTemplates());
+  const [templates, setTemplates] = useState<MessageTemplate[]>(() =>
+    getAllTemplates(),
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<MessageTemplate | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<MessageTemplate | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MessageTemplate | null>(
+    null,
+  );
   const [form, setForm] = useState<TemplateFormState>(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState<Partial<TemplateFormState>>({});
 
@@ -88,21 +106,31 @@ export default function MessagingPage() {
 
   const openEditModal = useCallback((template: MessageTemplate) => {
     setEditTarget(template);
-    setForm({ name: template.name, genderTag: template.genderTag, body: template.body });
+    setForm({
+      name: template.name,
+      genderTag: template.genderTag,
+      body: template.body,
+    });
     setFormErrors({});
     setModalOpen(true);
   }, []);
 
   const handleSave = useCallback(() => {
     const errors: Partial<TemplateFormState> = {};
-    if (!form.name.trim()) errors.name = 'Template name is required';
-    if (!form.body.trim()) errors.body = 'Message body is required';
+    if (!form.name.trim()) errors.name = "Template name is required";
+    if (!form.body.trim()) errors.body = "Message body is required";
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
     const now = Date.now();
     const template: MessageTemplate = editTarget
-      ? { ...editTarget, name: form.name.trim(), genderTag: form.genderTag, body: form.body.trim(), updatedAt: now }
+      ? {
+          ...editTarget,
+          name: form.name.trim(),
+          genderTag: form.genderTag,
+          body: form.body.trim(),
+          updatedAt: now,
+        }
       : {
           id: crypto.randomUUID(),
           name: form.name.trim(),
@@ -114,7 +142,11 @@ export default function MessagingPage() {
     saveTemplate(template);
     refresh();
     setModalOpen(false);
-    toast.success(editTarget ? 'Template updated successfully.' : 'Template created successfully.');
+    toast.success(
+      editTarget
+        ? "Template updated successfully."
+        : "Template created successfully.",
+    );
   }, [form, editTarget, refresh]);
 
   const handleDelete = useCallback(() => {
@@ -127,7 +159,7 @@ export default function MessagingPage() {
 
   const handleWhatsApp = useCallback((template: MessageTemplate) => {
     const url = `https://wa.me/?text=${encodeURIComponent(template.body)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(url, "_blank", "noopener,noreferrer");
   }, []);
 
   return (
@@ -135,18 +167,22 @@ export default function MessagingPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold" style={{ color: '#0b0854' }}>
+          <h1
+            className="font-display text-2xl font-bold"
+            style={{ color: "#0b0854" }}
+          >
             Messaging
           </h1>
           <p className="text-sm text-muted-foreground">
-            {templates.length} template{templates.length !== 1 ? 's' : ''} · Click WhatsApp to send
+            {templates.length} template{templates.length !== 1 ? "s" : ""} ·
+            Click WhatsApp to send
           </p>
         </div>
         {isSuperAdmin && (
           <Button
             size="sm"
             className="gap-2"
-            style={{ background: '#0b0854', color: '#ffffff' }}
+            style={{ background: "#0b0854", color: "#ffffff" }}
             onClick={openAddModal}
           >
             <Plus className="w-4 h-4" />
@@ -158,18 +194,27 @@ export default function MessagingPage() {
       {/* Template Grid */}
       {templates.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-            style={{ background: '#0b0854' + '18' }}>
-            <MessagesSquare className="w-7 h-7" style={{ color: '#0b0854' }} />
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+            style={{ background: "#0b0854" + "18" }}
+          >
+            <MessagesSquare className="w-7 h-7" style={{ color: "#0b0854" }} />
           </div>
-          <h3 className="font-semibold text-lg mb-1">No message templates yet</h3>
+          <h3 className="font-semibold text-lg mb-1">
+            No message templates yet
+          </h3>
           <p className="text-sm text-muted-foreground max-w-xs">
             {isSuperAdmin
-              ? 'Create your first template to quickly send messages via WhatsApp.'
-              : 'No templates have been created by the administrator yet.'}
+              ? "Create your first template to quickly send messages via WhatsApp."
+              : "No templates have been created by the administrator yet."}
           </p>
           {isSuperAdmin && (
-            <Button className="mt-4 gap-2" size="sm" style={{ background: '#0b0854', color: '#ffffff' }} onClick={openAddModal}>
+            <Button
+              className="mt-4 gap-2"
+              size="sm"
+              style={{ background: "#0b0854", color: "#ffffff" }}
+              onClick={openAddModal}
+            >
               <Plus className="w-4 h-4" />
               Add Template
             </Button>
@@ -177,17 +222,23 @@ export default function MessagingPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {templates.map(template => (
+          {templates.map((template) => (
             <div
               key={template.id}
               className="rounded-xl border border-border p-4 space-y-3 flex flex-col"
-              style={{ background: '#e3dec5' }}
+              style={{ background: "#e3dec5" }}
             >
               {/* Card Header */}
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <MessageSquare className="w-4 h-4 shrink-0" style={{ color: '#0b0854' }} />
-                  <span className="font-semibold text-sm truncate" style={{ color: '#0b0854' }}>
+                  <MessageSquare
+                    className="w-4 h-4 shrink-0"
+                    style={{ color: "#0b0854" }}
+                  />
+                  <span
+                    className="font-semibold text-sm truncate"
+                    style={{ color: "#0b0854" }}
+                  >
                     {template.name}
                   </span>
                 </div>
@@ -201,7 +252,10 @@ export default function MessagingPage() {
 
               {/* Placeholder hint */}
               <p className="text-xs text-muted-foreground">
-                Variables: {['{name}', '{voterId}', '{mobile}'].filter(v => template.body.includes(v)).join(', ') || 'none used'}
+                Variables:{" "}
+                {["{name}", "{voterId}", "{mobile}"]
+                  .filter((v) => template.body.includes(v))
+                  .join(", ") || "none used"}
               </p>
 
               {/* Actions */}
@@ -209,7 +263,11 @@ export default function MessagingPage() {
                 <Button
                   size="sm"
                   className="flex-1 gap-1.5 text-xs"
-                  style={{ background: '#25D366', color: '#ffffff', border: 'none' }}
+                  style={{
+                    background: "#25D366",
+                    color: "#ffffff",
+                    border: "none",
+                  }}
                   onClick={() => handleWhatsApp(template)}
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -244,26 +302,35 @@ export default function MessagingPage() {
       )}
 
       {/* Add / Edit Dialog */}
-      <Dialog open={modalOpen} onOpenChange={open => !open && setModalOpen(false)}>
+      <Dialog
+        open={modalOpen}
+        onOpenChange={(open) => !open && setModalOpen(false)}
+      >
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
-            <DialogTitle style={{ color: '#0b0854' }}>
-              {editTarget ? 'Edit Template' : 'New Message Template'}
+            <DialogTitle style={{ color: "#0b0854" }}>
+              {editTarget ? "Edit Template" : "New Message Template"}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             {/* Name */}
             <div className="space-y-1.5">
-              <Label htmlFor="tpl-name">Template Name <span className="text-destructive">*</span></Label>
+              <Label htmlFor="tpl-name">
+                Template Name <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="tpl-name"
                 value={form.name}
-                onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, name: e.target.value }))
+                }
                 placeholder="e.g. Greeting Message"
-                className={formErrors.name ? 'border-destructive' : ''}
+                className={formErrors.name ? "border-destructive" : ""}
               />
-              {formErrors.name && <p className="text-xs text-destructive">{formErrors.name}</p>}
+              {formErrors.name && (
+                <p className="text-xs text-destructive">{formErrors.name}</p>
+              )}
             </div>
 
             {/* Gender Tag */}
@@ -271,7 +338,9 @@ export default function MessagingPage() {
               <Label htmlFor="tpl-gender">Gender Tag</Label>
               <Select
                 value={form.genderTag}
-                onValueChange={v => setForm(prev => ({ ...prev, genderTag: v as GenderTag }))}
+                onValueChange={(v) =>
+                  setForm((prev) => ({ ...prev, genderTag: v as GenderTag }))
+                }
               >
                 <SelectTrigger id="tpl-gender" className="bg-white">
                   <SelectValue />
@@ -292,39 +361,51 @@ export default function MessagingPage() {
               <Textarea
                 id="tpl-body"
                 value={form.body}
-                onChange={e => setForm(prev => ({ ...prev, body: e.target.value }))}
-                placeholder={`Dear {name}, your Voter ID is {voterId}. Please contact us on {mobile} for assistance.`}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, body: e.target.value }))
+                }
+                placeholder="Dear {name}, your Voter ID is {voterId}. Please contact us on {mobile} for assistance."
                 rows={5}
-                className={formErrors.body ? 'border-destructive' : ''}
+                className={formErrors.body ? "border-destructive" : ""}
               />
-              {formErrors.body && <p className="text-xs text-destructive">{formErrors.body}</p>}
+              {formErrors.body && (
+                <p className="text-xs text-destructive">{formErrors.body}</p>
+              )}
               <p className="text-xs text-muted-foreground">
-                Use placeholders: <code className="bg-muted px-1 rounded">{'{name}'}</code>{' '}
-                <code className="bg-muted px-1 rounded">{'{voterId}'}</code>{' '}
-                <code className="bg-muted px-1 rounded">{'{mobile}'}</code>
+                Use placeholders:{" "}
+                <code className="bg-muted px-1 rounded">{"{name}"}</code>{" "}
+                <code className="bg-muted px-1 rounded">{"{voterId}"}</code>{" "}
+                <code className="bg-muted px-1 rounded">{"{mobile}"}</code>
               </p>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
             <Button
               onClick={handleSave}
-              style={{ background: '#0b0854', color: '#ffffff' }}
+              style={{ background: "#0b0854", color: "#ffffff" }}
             >
-              {editTarget ? 'Save Changes' : 'Create Template'}
+              {editTarget ? "Save Changes" : "Create Template"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={open => !open && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
         <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Template</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>"{deleteTarget?.name}"</strong>? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <strong>"{deleteTarget?.name}"</strong>? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
