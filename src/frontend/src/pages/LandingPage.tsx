@@ -301,16 +301,15 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
 
       {/* Hero Section */}
       <section
-        className="relative overflow-hidden py-20 sm:py-32 hero-grid-pattern"
-        style={{ background: "#0b0854" }}
+        className="relative overflow-hidden py-20 sm:py-32"
+        style={{
+          backgroundImage:
+            "url('/assets/generated/india-campaign-rally.dim_1200x600.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse at 20% 50%, oklch(0.55 0.18 240) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, oklch(0.45 0.14 270) 0%, transparent 55%)",
-          }}
-        />
+        <div className="absolute inset-0 bg-black/65" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -458,8 +457,105 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Use Cases */}
+      {/* Campaign Stories Image Section */}
       <section className="py-20" style={{ background: "#f7f5ee" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span
+              className="inline-block text-xs font-semibold uppercase tracking-widest mb-3 px-3 py-1 rounded-full"
+              style={{ background: "rgba(11,8,84,0.07)", color: "#0b0854" }}
+            >
+              Trusted Platform
+            </span>
+            <h2
+              className="font-display text-3xl sm:text-4xl font-bold mb-4"
+              style={{ color: "#0b0854" }}
+            >
+              Trusted by Campaign Teams Across India
+            </h2>
+            <p className="text-lg" style={{ color: "rgba(11,8,84,0.6)" }}>
+              From grassroots outreach to data-driven strategy — SurveyMitra
+              powers it all
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                image: "/assets/generated/india-voting-booth.dim_800x500.jpg",
+                caption: "Reach every polling booth",
+                desc: "Map and track voter presence across all booths in your constituency",
+              },
+              {
+                image:
+                  "/assets/generated/india-campaign-analytics.dim_800x500.jpg",
+                caption: "Data-driven campaign strategy",
+                desc: "Visual analytics to identify swing voters, track sentiment, and allocate campaign resources",
+              },
+              {
+                image: "/assets/generated/india-voter-outreach.dim_800x500.jpg",
+                caption: "Connect with every voter",
+                desc: "Personalized WhatsApp and SMS campaigns reaching each voter by name",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.caption}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="rounded-xl overflow-hidden shadow-lg group"
+              >
+                <div
+                  className="relative overflow-hidden"
+                  style={{ height: "220px" }}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.caption}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        "linear-gradient(to top, rgba(11,8,84,0.85) 0%, rgba(11,8,84,0.2) 50%, transparent 100%)",
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-white font-bold text-lg leading-tight">
+                      {item.caption}
+                    </h3>
+                  </div>
+                </div>
+                <div
+                  className="p-5"
+                  style={{
+                    background: "white",
+                    borderTop: "1px solid rgba(11,8,84,0.07)",
+                  }}
+                >
+                  <p
+                    className="text-sm"
+                    style={{ color: "rgba(11,8,84,0.65)" }}
+                  >
+                    {item.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Use Cases */}
+      <section className="py-20" style={{ background: "white" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

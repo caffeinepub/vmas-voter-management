@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import React, { useState, useEffect } from "react";
 import Layout, { type PageRoute } from "./components/Layout";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import AdvancedAnalyticsPage from "./pages/AdvancedAnalyticsPage";
 import DashboardPage from "./pages/DashboardPage";
 import LabelPrintPage from "./pages/LabelPrintPage";
 import LandingPage from "./pages/LandingPage";
@@ -128,6 +129,8 @@ function AppRouter() {
         return <MessagingPage />;
       case "tasks":
         return <TasksPage />;
+      case "analytics":
+        return <AdvancedAnalyticsPage />;
       default:
         return <DashboardPage />;
     }

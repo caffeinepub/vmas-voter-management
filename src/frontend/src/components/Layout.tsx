@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  BarChart2,
   ChevronRight,
   ClipboardList,
   LayoutDashboard,
@@ -31,7 +32,8 @@ export type PageRoute =
   | "settings"
   | "label-print"
   | "messaging"
-  | "tasks";
+  | "tasks"
+  | "analytics";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -64,6 +66,12 @@ const NAV_ITEMS: NavItem[] = [
     label: "Add Voter",
     icon: UserPlus,
     roles: ["superAdmin", "dataEntry"],
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    icon: BarChart2,
+    roles: ["superAdmin", "dataEntry", "viewer"],
   },
   {
     id: "messaging",

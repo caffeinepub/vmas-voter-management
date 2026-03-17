@@ -1,33 +1,35 @@
 # SurveyMitra
 
 ## Current State
-- Full-featured voter management app with Dashboard, Voters List, Analytics, Messaging, Tasks, Settings, Label Print pages
-- Public LandingPage with hero, stats, use cases, feature highlights, CTA sections
-- Branding: primary #0b0854, accent #e3dec5
-- Footer currently says 'Built by SJ' on login page and landing page
-- No product screenshot/mockup images on landing page
-- Layout sidebar has no Tattva Innovation credit
+- Dashboard page with stat cards, pie charts (category, gender), bar charts (education, profession), line chart (voter growth). Education/profession bar chart x-axis labels render at -35deg rotation but are clipping/invisible for many values.
+- Sidebar has: Dashboard, Voters, Add Voter, Messaging, Tasks, Settings, Label Print.
+- Public landing page at #landing with product showcase sections but generic UI.
+- VoterRecord has fields: taluka, district, ward, boothNumber, caste, religion, constituency, categoryLabel, education, profession, gender.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Product screenshot showcase section on LandingPage: 3 realistic mockup images (Dashboard overview, Analytics charts, Voter list table) each annotated with real use-case explanations
-- 'Made by Tattva Innovation' credit in: landing page footer, login page footer, sidebar bottom
-- New section on landing page: 'See It In Action' with 3 screenshot cards, each with a title, image, and 2-3 bullet points explaining real-world usage
+- New **Advanced Analytics** page in sidebar (all roles) with:
+  - Filters: Taluka, Area/Ward, District, Caste, Religion, Category, Gender, Booth, Constituency
+  - Charts: breakdown bar/pie charts for Caste distribution, Religion distribution, Area/Taluka distribution, District distribution, Booth-wise voter counts, Constituency breakdown, Category by Taluka cross-tab, Volunteer count by area
+  - Summary stats: unique talukas, districts, castes, religions
+  - All charts use vibrant multi-color palettes
+- New `AdvancedAnalyticsPage.tsx` component
+- Add "Analytics" nav item to Layout sidebar (BarChart icon, all roles)
+- Add `analytics` route to PageRoute and App.tsx
+- 4 India-centric AI images to landing page hero and feature sections
 
 ### Modify
-- Replace all 'Built by SJ' text with 'Made by Tattva Innovation'
-- Full visual polish: improved typography hierarchy, better spacing, refined card shadows, smoother transitions, enhanced mobile layout, richer hero section
-- Landing page: add screenshot showcase section between use cases and feature highlights
-- Login page footer: update credit
-- Layout sidebar bottom: add subtle 'Made by Tattva Innovation' text
+- **Dashboard education/profession bar charts**: Fix missing x-axis labels by increasing chart height to 300px, bottom margin to 80px, and improving tick renderer to properly show all label text. Also add `interval={0}` on XAxis to force all labels.
+- **LandingPage**: Replace generic hero with India campaign rally image. Add a new "Visual Story" section with 3 image cards (voting booth, analytics war room, voter outreach). Make overall UI more modern: glassmorphism hero overlay, bold typography, gradient accents.
 
 ### Remove
-- 'Built by SJ' text from all locations
+- Nothing removed
 
 ## Implementation Plan
-1. Generate 3 mockup images: dashboard-screenshot.png, analytics-screenshot.png, voters-screenshot.png
-2. Update LandingPage.tsx: add screenshot showcase section with images + use case annotations, update footer branding
-3. Update LoginPage.tsx: update footer credit to 'Made by Tattva Innovation'
-4. Update Layout.tsx: add 'Made by Tattva Innovation' in sidebar footer
-5. Full visual polish pass across all pages
+1. Create `src/frontend/src/pages/AdvancedAnalyticsPage.tsx` with filter panel + 6 charts
+2. Update `PageRoute` type in `Layout.tsx` to add `analytics`
+3. Add Analytics nav item in `NAV_ITEMS` in `Layout.tsx`
+4. Add `analytics` case in `App.tsx` renderPage switch
+5. Fix education/profession chart heights and label rendering in `DashboardPage.tsx`
+6. Update `LandingPage.tsx` with new AI images, modern hero section, image showcase cards

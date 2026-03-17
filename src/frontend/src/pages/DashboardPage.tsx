@@ -395,17 +395,18 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-80">
               {educationData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={educationData}
-                    margin={{ left: 8, right: 16, top: 8, bottom: 60 }}
+                    margin={{ left: 8, right: 16, top: 8, bottom: 90 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
                       dataKey="name"
-                      height={60}
+                      interval={0}
+                      height={80}
                       tick={(props) => {
                         const { x, y, payload } = props as {
                           x: number;
@@ -417,9 +418,9 @@ export default function DashboardPage() {
                             <text
                               x={0}
                               y={0}
-                              dy={10}
+                              dy={16}
                               textAnchor="end"
-                              fontSize={10}
+                              fontSize={9}
                               transform="rotate(-35)"
                             >
                               {payload.value}
@@ -448,17 +449,18 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-80">
               {professionData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={professionData}
-                    margin={{ left: 8, right: 16, top: 8, bottom: 60 }}
+                    margin={{ left: 8, right: 16, top: 8, bottom: 90 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
                       dataKey="name"
-                      height={60}
+                      interval={0}
+                      height={80}
                       tick={(props) => {
                         const { x, y, payload } = props as {
                           x: number;
@@ -470,9 +472,9 @@ export default function DashboardPage() {
                             <text
                               x={0}
                               y={0}
-                              dy={10}
+                              dy={16}
                               textAnchor="end"
-                              fontSize={10}
+                              fontSize={9}
                               transform="rotate(-35)"
                             >
                               {payload.value}
