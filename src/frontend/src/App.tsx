@@ -23,31 +23,40 @@ interface RouterState {
   id?: string;
 }
 
+function getInitialView(): "landing" | "login" | "app" {
+  const hash = window.location.hash.replace("#", "");
+  if (hash === "login") return "login";
+  if (hash === "landing" || hash === "") return "landing";
+  return "app";
+}
+
 function AppRouter() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const [view, setView] = useState<"landing" | "login" | "app">(getInitialView);
   const [route, setRoute] = useState<RouterState>({ page: "dashboard" });
-  const [showLanding, setShowLanding] = useState(() => {
-    return window.location.hash === "#landing";
-  });
 
   // On load, try to restore last page from hash
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
-    if (hash && hash !== "landing") {
+    if (hash && hash !== "landing" && hash !== "login") {
       const [page, id] = hash.split("/");
       setRoute({ page: page as PageRoute, id });
     }
   }, []);
 
-  // Update URL hash when route changes
+  // Update URL hash when route/view changes
   useEffect(() => {
-    if (showLanding) return;
-    const hash = route.id ? `#${route.page}/${route.id}` : `#${route.page}`;
-    window.history.replaceState(null, "", hash);
-  }, [route, showLanding]);
+    if (view === "landing") {
+      window.history.replaceState(null, "", "#landing");
+    } else if (view === "login") {
+      window.history.replaceState(null, "", "#login");
+    } else {
+      const hash = route.id ? `#${route.page}/${route.id}` : `#${route.page}`;
+      window.history.replaceState(null, "", hash);
+    }
+  }, [view, route]);
 
   const navigate = (page: PageRoute, id?: string) => {
-    // Role guards
     if (!user) return;
     if (
       (page === "settings" || page === "label-print") &&
@@ -69,12 +78,11 @@ function AppRouter() {
     );
   }
 
-  if (showLanding) {
+  if (view === "landing") {
     return (
       <LandingPage
         onNavigate={() => {
-          setShowLanding(false);
-          window.history.replaceState(null, "", "#login");
+          setView("login");
         }}
       />
     );
@@ -83,10 +91,18 @@ function AppRouter() {
   if (!isAuthenticated) {
     return (
       <LoginPage
-        onLoginSuccess={() => setRoute({ page: "dashboard" })}
-        onShowLanding={() => setShowLanding(true)}
+        onLoginSuccess={() => {
+          setView("app");
+          setRoute({ page: "dashboard" });
+        }}
+        onShowLanding={() => setView("landing")}
       />
     );
+  }
+
+  // If authenticated but view is "login" or "landing", go to app
+  if (view !== "app") {
+    setView("app");
   }
 
   const renderPage = () => {
