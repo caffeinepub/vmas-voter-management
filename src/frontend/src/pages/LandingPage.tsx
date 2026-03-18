@@ -304,7 +304,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         className="relative overflow-hidden py-20 sm:py-32"
         style={{
           backgroundImage:
-            "url('/assets/generated/india-campaign-rally.dim_1200x600.jpg')",
+            "url('/assets/generated/hero-campaign-rally.dim_1600x800.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
