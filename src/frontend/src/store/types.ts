@@ -102,7 +102,7 @@ export interface MessageTemplate {
   id: string;
   name: string;
   genderTag: "Male" | "Female" | "All";
-  body: string; // can contain {name}, {voterId}, {mobile} placeholders
+  body: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -118,14 +118,46 @@ export interface Task {
   id: string;
   title: string;
   taskType: TaskType;
-  assignedTo: string; // userId
-  assignedToName: string; // username for display
+  assignedTo: string;
+  assignedToName: string;
   linkedVoterId?: string;
   linkedVoterName?: string;
-  dueDate?: string; // ISO date string
+  dueDate?: string;
   status: TaskStatus;
   notes?: string;
   createdAt: number;
   updatedAt: number;
-  createdBy: string; // userId
+  createdBy: string;
+}
+
+export interface ElectionResult {
+  id: string;
+  year: string;
+  electionType: string;
+  candidateName: string;
+  party: string;
+  votesReceived: number;
+  taluka: string;
+  village?: string;
+  booth?: string;
+  ward?: string;
+  createdAt: number;
+  createdBy: string;
+}
+
+export interface FieldNote {
+  id: string;
+  text: string;
+  taluka: string;
+  village?: string;
+  booth?: string;
+  ward?: string;
+  imageUrl?: string;
+  imageName?: string;
+  pdfUrl?: string;
+  pdfName?: string;
+  createdAt: number;
+  updatedAt: number;
+  createdBy: string;
+  createdByName: string;
 }

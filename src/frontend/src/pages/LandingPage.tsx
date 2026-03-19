@@ -2,13 +2,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   BarChart3,
+  Brain,
   CheckCircle2,
   ChevronRight,
   ClipboardList,
   FileSpreadsheet,
+  FileText,
+  FlaskConical,
   MapPin,
   MessageCircle,
   Moon,
+  Notebook,
   Printer,
   Shield,
   Star,
@@ -16,6 +20,7 @@ import {
   UserCheck,
   Users,
   Vote,
+  Zap,
 } from "lucide-react";
 import { motion } from "motion/react";
 import React from "react";
@@ -695,6 +700,201 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                 </p>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Key Features Section */}
+      <section className="py-20" style={{ background: "#ffffff" }}>
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <Badge
+              className="mb-4 px-4 py-1 text-sm font-semibold"
+              style={{
+                background: "rgba(11,8,84,0.08)",
+                color: "#0b0854",
+                border: "1px solid rgba(11,8,84,0.15)",
+              }}
+            >
+              Complete Feature Set
+            </Badge>
+            <h2
+              className="font-display text-3xl sm:text-4xl font-bold mb-4"
+              style={{ color: "#0b0854" }}
+            >
+              Everything Your Campaign Team Needs
+            </h2>
+            <p
+              className="text-lg max-w-2xl mx-auto"
+              style={{ color: "rgba(11,8,84,0.6)" }}
+            >
+              From booth-level data entry to AI-driven election strategy —
+              SurveyMitra gives your team the tools to win.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Users,
+                name: "Voter Management",
+                desc: "Add, edit, and search 3 lakh+ voter records with custom fields.",
+                useCase:
+                  "Campaign team adds 5,000 booth-level voters before election day with a single Excel upload.",
+                color: "#1565c0",
+              },
+              {
+                icon: BarChart3,
+                name: "Advanced Analytics",
+                desc: "9 filters (taluka, caste, religion, district, etc.) and 6 interactive charts.",
+                useCase:
+                  "Know exactly which caste dominates which booth to prioritize outreach and allocate resources.",
+                color: "#6a1b9a",
+              },
+              {
+                icon: MapPin,
+                name: "Village Level Program (VLP)",
+                desc: "Micro-level political intelligence combining voter data, election history, AI insights.",
+                useCase:
+                  "Identify swing booths and weak zones before door-to-door campaigning starts.",
+                color: "#0b0854",
+              },
+              {
+                icon: TrendingUp,
+                name: "Election Results Dashboard",
+                desc: "5-year election history with trend charts, winner/runner-up cards, win probability.",
+                useCase:
+                  "Compare past margin data to predict which areas need extra attention this election cycle.",
+                color: "#e65100",
+              },
+              {
+                icon: Brain,
+                name: "AI Insights",
+                desc: "Win probability, Strong/Swing/Weak classification, caste influence analysis.",
+                useCase:
+                  "Get instant AI-driven strategy: focus on OBC voters in Booth 12 to swing the result.",
+                color: "#00897b",
+              },
+              {
+                icon: Notebook,
+                name: "Field Notes",
+                desc: "Add text/image/PDF notes tagged to taluka/village/booth for ground-level intel.",
+                useCase:
+                  "Field worker logs booth-level intel from the ground; visible instantly to the campaign manager.",
+                color: "#2e7d32",
+              },
+              {
+                icon: MessageCircle,
+                name: "Bulk Messaging",
+                desc: "WhatsApp message templates (male/female) sent to filtered voter list in one click.",
+                useCase:
+                  "Send personalized 'Please vote' messages to 2,000 selected voters in one click.",
+                color: "#1565c0",
+              },
+              {
+                icon: ClipboardList,
+                name: "Task Manager",
+                desc: "Assign tasks to field workers — follow-ups, visits, campaign activities.",
+                useCase:
+                  "Super Admin assigns 50 voter follow-up tasks to field agents before polling day.",
+                color: "#6a1b9a",
+              },
+              {
+                icon: FileSpreadsheet,
+                name: "Excel Import/Export",
+                desc: "Import voters via Excel template, export all data as JSON backup.",
+                useCase:
+                  "Download the template, fill 500 voter records offline, and upload in bulk to the system.",
+                color: "#e65100",
+              },
+              {
+                icon: Printer,
+                name: "Label Printing",
+                desc: "Print voter address labels for mail/distribution campaigns.",
+                useCase:
+                  "Print booth-wise address stickers for voter slips before door-to-door campaign.",
+                color: "#00897b",
+              },
+              {
+                icon: Shield,
+                name: "Role-Based Access",
+                desc: "3 roles: Super Admin, Data Entry, Viewer with granular permissions.",
+                useCase:
+                  "Field agents get Data Entry access; senior staff get full Admin control over all data.",
+                color: "#2e7d32",
+              },
+              {
+                icon: FileText,
+                name: "Report Generation",
+                desc: "Full VLP report with charts, AI insights, election history, field notes.",
+                useCase:
+                  "Print a complete booth-level strategy report before a campaign meeting or presentation.",
+                color: "#1565c0",
+              },
+            ].map((feature, idx) => {
+              const Icon = feature.icon;
+              return (
+                <motion.div
+                  key={feature.name}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: (idx % 6) * 0.07 }}
+                  viewport={{ once: true }}
+                  className="rounded-2xl border p-6 flex flex-col gap-3 hover:shadow-lg transition-shadow"
+                  style={{
+                    background: "#faf9f5",
+                    borderColor: "rgba(11,8,84,0.1)",
+                    borderLeftWidth: "4px",
+                    borderLeftColor: feature.color,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: `${feature.color}18` }}
+                    >
+                      <Icon
+                        className="w-5 h-5"
+                        style={{ color: feature.color }}
+                      />
+                    </div>
+                    <h3
+                      className="font-bold text-base"
+                      style={{ color: "#0b0854" }}
+                    >
+                      {feature.name}
+                    </h3>
+                  </div>
+                  <p
+                    className="text-sm"
+                    style={{ color: "rgba(11,8,84,0.65)" }}
+                  >
+                    {feature.desc}
+                  </p>
+                  <div
+                    className="mt-auto pt-3 border-t text-xs"
+                    style={{
+                      borderColor: "rgba(11,8,84,0.08)",
+                      color: "rgba(11,8,84,0.5)",
+                    }}
+                  >
+                    <span
+                      className="font-semibold"
+                      style={{ color: feature.color }}
+                    >
+                      Use Case:{" "}
+                    </span>
+                    <span className="italic">{feature.useCase}</span>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

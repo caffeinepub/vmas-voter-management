@@ -10,6 +10,7 @@ import LoginPage from "./pages/LoginPage";
 import MessagingPage from "./pages/MessagingPage";
 import SettingsPage from "./pages/SettingsPage";
 import TasksPage from "./pages/TasksPage";
+import VLPPage from "./pages/VLPPage";
 import VoterDetailPage from "./pages/VoterDetailPage";
 import VoterFormPage from "./pages/VoterFormPage";
 import VotersListPage from "./pages/VotersListPage";
@@ -35,7 +36,6 @@ function AppRouter() {
   const [view, setView] = useState<"landing" | "login" | "app">(getInitialView);
   const [route, setRoute] = useState<RouterState>({ page: "dashboard" });
 
-  // On load, try to restore last page from hash
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
     if (hash && hash !== "landing" && hash !== "login") {
@@ -44,7 +44,6 @@ function AppRouter() {
     }
   }, []);
 
-  // Update URL hash when route/view changes
   useEffect(() => {
     if (view === "landing") {
       window.history.replaceState(null, "", "#landing");
@@ -147,6 +146,8 @@ function AppRouter() {
         return <TasksPage />;
       case "analytics":
         return <AdvancedAnalyticsPage />;
+      case "vlp":
+        return <VLPPage />;
       default:
         return <DashboardPage />;
     }

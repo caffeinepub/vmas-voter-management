@@ -7,6 +7,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   LogOut,
+  MapPin,
   Menu,
   MessageSquare,
   Moon,
@@ -33,7 +34,8 @@ export type PageRoute =
   | "label-print"
   | "messaging"
   | "tasks"
-  | "analytics";
+  | "analytics"
+  | "vlp";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -71,6 +73,12 @@ const NAV_ITEMS: NavItem[] = [
     id: "analytics",
     label: "Analytics",
     icon: BarChart2,
+    roles: ["superAdmin", "dataEntry", "viewer"],
+  },
+  {
+    id: "vlp",
+    label: "Village Level Program",
+    icon: MapPin,
     roles: ["superAdmin", "dataEntry", "viewer"],
   },
   {
@@ -162,7 +170,7 @@ export default function Layout({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {visibleNavItems.map((item) => (
           <button
             type="button"
@@ -171,7 +179,9 @@ export default function Layout({
               onNavigate(item.id);
               setSidebarOpen(false);
             }}
-            className={`sidebar-nav-item w-full text-left ${isActive(item.id) ? "active" : ""}`}
+            className={`sidebar-nav-item w-full text-left ${
+              isActive(item.id) ? "active" : ""
+            }`}
           >
             <item.icon className="w-4 h-4 shrink-0" />
             <span>{item.label}</span>
@@ -201,7 +211,9 @@ export default function Layout({
               {user.username}
             </div>
             <span
-              className={`text-xs px-1.5 py-0.5 rounded font-medium ${ROLE_COLORS[user.role]}`}
+              className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                ROLE_COLORS[user.role]
+              }`}
             >
               {ROLE_LABELS[user.role]}
             </span>
