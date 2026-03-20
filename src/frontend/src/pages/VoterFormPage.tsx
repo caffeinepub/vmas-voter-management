@@ -29,6 +29,7 @@ import type { PageRoute } from "../components/Layout";
 import { useAuth } from "../contexts/AuthContext";
 import { getAllCustomFields } from "../store/customFields";
 import { getOptionsByCategory } from "../store/dropdowns";
+import { getFormLabels } from "../store/storage";
 import type { CustomField, VoterRecord } from "../store/types";
 import {
   addVoter,
@@ -69,6 +70,7 @@ const INITIAL_FORM: FormData = {
   organizationName: "",
   maritalStatus: "",
   caste: "",
+  subCaste: "",
   religion: "",
   categoryLabel: "",
   influenceLevel: 0,
@@ -227,11 +229,15 @@ function CustomFieldInput({
   field,
   value,
   onChange,
+  filteredOptions,
 }: {
   field: CustomField;
   value: string;
   onChange: (v: string) => void;
+  filteredOptions?: string[];
 }) {
+  const opts = filteredOptions ?? field.options;
+
   switch (field.fieldType) {
     case "text":
       return (
@@ -316,7 +322,7 @@ function CustomFieldInput({
               <SelectValue placeholder={`Select ${field.label}`} />
             </SelectTrigger>
             <SelectContent>
-              {field.options.map((opt) => (
+              {opts.map((opt) => (
                 <SelectItem key={opt} value={opt}>
                   {opt}
                 </SelectItem>
@@ -333,7 +339,7 @@ function CustomFieldInput({
             {field.label}
           </Label>
           <div className="flex flex-wrap gap-2">
-            {field.options.map((opt) => (
+            {opts.map((opt) => (
               <div key={opt} className="flex items-center gap-1.5">
                 <Checkbox
                   id={`cf-${field.fieldId}-${opt}`}
@@ -373,12 +379,14 @@ export default function VoterFormPage({
   const [saving, setSaving] = useState(false);
   const [customFields] = useState(() => getAllCustomFields());
 
+  // Form labels (customizable)
+  const formLabels = getFormLabels();
+  const lbl = (key: string, defaultLabel: string) =>
+    formLabels[key] || defaultLabel;
+
   // Dropdown options
   const genderOpts = getOptionsByCategory("gender");
-  const talukaOpts = getOptionsByCategory("taluka");
   const districtOpts = getOptionsByCategory("district");
-  const boothOpts = getOptionsByCategory("booth");
-  const wardOpts = getOptionsByCategory("ward");
   const constituencyOpts = getOptionsByCategory("constituency");
   const educationOpts = getOptionsByCategory("education");
   const professionOpts = getOptionsByCategory("profession");
@@ -387,6 +395,38 @@ export default function VoterFormPage({
   const casteOpts = getOptionsByCategory("caste");
   const religionOpts = getOptionsByCategory("religion");
   const categoryLabelOpts = getOptionsByCategory("categoryLabel");
+
+  // Parent-child location options
+  const allTalukaOpts = getOptionsByCategory("taluka");
+  const allWardOpts = getOptionsByCategory("ward");
+  const allBoothOpts = getOptionsByCategory("booth");
+
+  const filteredTalukaOpts =
+    form.district && allTalukaOpts.some((o) => o.parentValue)
+      ? allTalukaOpts.filter(
+          (o) => !o.parentValue || o.parentValue === form.district,
+        )
+      : allTalukaOpts;
+
+  const filteredWardOpts =
+    form.taluka && allWardOpts.some((o) => o.parentValue)
+      ? allWardOpts.filter(
+          (o) => !o.parentValue || o.parentValue === form.taluka,
+        )
+      : allWardOpts;
+
+  const filteredBoothOpts =
+    form.ward && allBoothOpts.some((o) => o.parentValue)
+      ? allBoothOpts.filter(
+          (o) => !o.parentValue || o.parentValue === form.ward,
+        )
+      : allBoothOpts;
+
+  // Subcaste filtered by selected caste
+  const allSubcasteOpts = getOptionsByCategory("subcaste");
+  const subcasteOpts = form.caste
+    ? allSubcasteOpts.filter((o) => o.parentValue === form.caste)
+    : allSubcasteOpts;
 
   useEffect(() => {
     if (editId) {
@@ -474,6 +514,20 @@ export default function VoterFormPage({
 
   const isViewer = user?.role === "viewer";
 
+  // Custom field parent-child filtering
+  const getFilteredCustomOptions = (
+    field: CustomField,
+  ): string[] | undefined => {
+    if (!field.parentFieldId) return undefined;
+    const parentValue = getCustomValue(field.parentFieldId);
+    if (!parentValue) return [];
+    // Filter options that match pattern "parentValue - option" or just return all
+    // Since custom field options are plain strings, we filter by those starting with parent value
+    return field.options.filter((opt) =>
+      opt.toLowerCase().startsWith(parentValue.toLowerCase()),
+    );
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
@@ -547,7 +601,8 @@ export default function VoterFormPage({
                 htmlFor="voterId"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Voter ID <span className="text-destructive">*</span>
+                {lbl("voterId", "Voter ID")}{" "}
+                <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="voterId"
@@ -567,7 +622,8 @@ export default function VoterFormPage({
                 htmlFor="fullName"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Full Name <span className="text-destructive">*</span>
+                {lbl("fullName", "Full Name")}{" "}
+                <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="fullName"
@@ -589,7 +645,7 @@ export default function VoterFormPage({
                 htmlFor="fatherHusbandName"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Father / Husband Name
+                {lbl("fatherHusbandName", "Father / Husband Name")}
               </Label>
               <Input
                 id="fatherHusbandName"
@@ -603,7 +659,7 @@ export default function VoterFormPage({
                 htmlFor="gender"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Gender
+                {lbl("gender", "Gender")}
               </Label>
               <Select
                 value={form.gender ?? ""}
@@ -643,7 +699,7 @@ export default function VoterFormPage({
                 htmlFor="mobile"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Mobile
+                {lbl("mobile", "Mobile")}
               </Label>
               <Input
                 id="mobile"
@@ -681,7 +737,7 @@ export default function VoterFormPage({
               htmlFor="address"
               className="text-sm font-medium mb-1.5 block"
             >
-              Address
+              {lbl("address", "Address")}
             </Label>
             <Textarea
               id="address"
@@ -708,39 +764,19 @@ export default function VoterFormPage({
             </div>
             <div>
               <Label
-                htmlFor="taluka"
-                className="text-sm font-medium mb-1.5 block"
-              >
-                Taluka
-              </Label>
-              <Select
-                value={form.taluka ?? ""}
-                onValueChange={(v) => setField("taluka", v)}
-              >
-                <SelectTrigger id="taluka" className="h-9">
-                  <SelectValue placeholder="Select taluka" />
-                </SelectTrigger>
-                <SelectContent>
-                  {talukaOpts.map((o) => (
-                    <SelectItem key={o.id} value={o.label}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </FieldRow>
-          <FieldRow>
-            <div>
-              <Label
                 htmlFor="district"
                 className="text-sm font-medium mb-1.5 block"
               >
-                District
+                {lbl("district", "District")}
               </Label>
               <Select
                 value={form.district ?? ""}
-                onValueChange={(v) => setField("district", v)}
+                onValueChange={(v) => {
+                  setField("district", v);
+                  setField("taluka", "");
+                  setField("ward", "");
+                  setField("boothNumber", "");
+                }}
               >
                 <SelectTrigger id="district" className="h-9">
                   <SelectValue placeholder="Select district" />
@@ -754,22 +790,54 @@ export default function VoterFormPage({
                 </SelectContent>
               </Select>
             </div>
+          </FieldRow>
+          <FieldRow>
             <div>
               <Label
-                htmlFor="boothNumber"
+                htmlFor="taluka"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Booth Number
+                {lbl("taluka", "Taluka")}
               </Label>
               <Select
-                value={form.boothNumber ?? ""}
-                onValueChange={(v) => setField("boothNumber", v)}
+                value={form.taluka ?? ""}
+                onValueChange={(v) => {
+                  setField("taluka", v);
+                  setField("ward", "");
+                  setField("boothNumber", "");
+                }}
               >
-                <SelectTrigger id="boothNumber" className="h-9">
-                  <SelectValue placeholder="Select booth" />
+                <SelectTrigger id="taluka" className="h-9">
+                  <SelectValue placeholder="Select taluka" />
                 </SelectTrigger>
                 <SelectContent>
-                  {boothOpts.map((o) => (
+                  {filteredTalukaOpts.map((o) => (
+                    <SelectItem key={o.id} value={o.label}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label
+                htmlFor="ward"
+                className="text-sm font-medium mb-1.5 block"
+              >
+                {lbl("ward", "Ward")}
+              </Label>
+              <Select
+                value={form.ward ?? ""}
+                onValueChange={(v) => {
+                  setField("ward", v);
+                  setField("boothNumber", "");
+                }}
+              >
+                <SelectTrigger id="ward" className="h-9">
+                  <SelectValue placeholder="Select ward" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredWardOpts.map((o) => (
                     <SelectItem key={o.id} value={o.label}>
                       {o.label}
                     </SelectItem>
@@ -781,20 +849,20 @@ export default function VoterFormPage({
           <FieldRow>
             <div>
               <Label
-                htmlFor="ward"
+                htmlFor="boothNumber"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Ward
+                {lbl("boothNumber", "Booth Number")}
               </Label>
               <Select
-                value={form.ward ?? ""}
-                onValueChange={(v) => setField("ward", v)}
+                value={form.boothNumber ?? ""}
+                onValueChange={(v) => setField("boothNumber", v)}
               >
-                <SelectTrigger id="ward" className="h-9">
-                  <SelectValue placeholder="Select ward" />
+                <SelectTrigger id="boothNumber" className="h-9">
+                  <SelectValue placeholder="Select booth" />
                 </SelectTrigger>
                 <SelectContent>
-                  {wardOpts.map((o) => (
+                  {filteredBoothOpts.map((o) => (
                     <SelectItem key={o.id} value={o.label}>
                       {o.label}
                     </SelectItem>
@@ -807,7 +875,7 @@ export default function VoterFormPage({
                 htmlFor="constituency"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Constituency
+                {lbl("constituency", "Constituency")}
               </Label>
               <Select
                 value={form.constituency ?? ""}
@@ -836,7 +904,7 @@ export default function VoterFormPage({
                 htmlFor="categoryLabel"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Category Label
+                {lbl("categoryLabel", "Category Label")}
               </Label>
               <Select
                 value={form.categoryLabel ?? ""}
@@ -869,7 +937,7 @@ export default function VoterFormPage({
             </div>
             <div>
               <Label className="text-sm font-medium mb-1.5 block">
-                Influence Level
+                {lbl("influenceLevel", "Influence Level")}
               </Label>
               <StarSelector
                 value={form.influenceLevel ?? 0}
@@ -909,7 +977,7 @@ export default function VoterFormPage({
                 htmlFor="education"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Education
+                {lbl("education", "Education")}
               </Label>
               <Select
                 value={form.education ?? ""}
@@ -932,7 +1000,7 @@ export default function VoterFormPage({
                 htmlFor="profession"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Profession
+                {lbl("profession", "Profession")}
               </Label>
               <Select
                 value={form.profession ?? ""}
@@ -1000,7 +1068,7 @@ export default function VoterFormPage({
                 htmlFor="maritalStatus"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Marital Status
+                {lbl("maritalStatus", "Marital Status")}
               </Label>
               <Select
                 value={form.maritalStatus ?? ""}
@@ -1023,11 +1091,14 @@ export default function VoterFormPage({
                 htmlFor="caste"
                 className="text-sm font-medium mb-1.5 block"
               >
-                Caste
+                {lbl("caste", "Caste Category")}
               </Label>
               <Select
                 value={form.caste ?? ""}
-                onValueChange={(v) => setField("caste", v)}
+                onValueChange={(v) => {
+                  setField("caste", v);
+                  setField("subCaste", "");
+                }}
               >
                 <SelectTrigger id="caste" className="h-9">
                   <SelectValue placeholder="Select caste" />
@@ -1042,31 +1113,89 @@ export default function VoterFormPage({
               </Select>
             </div>
           </FieldRow>
-          <FieldRow>
-            <div>
-              <Label
-                htmlFor="religion"
-                className="text-sm font-medium mb-1.5 block"
-              >
-                Religion
-              </Label>
-              <Select
-                value={form.religion ?? ""}
-                onValueChange={(v) => setField("religion", v)}
-              >
-                <SelectTrigger id="religion" className="h-9">
-                  <SelectValue placeholder="Select religion" />
-                </SelectTrigger>
-                <SelectContent>
-                  {religionOpts.map((o) => (
-                    <SelectItem key={o.id} value={o.label}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </FieldRow>
+          {/* Sub Caste - only shown if subcaste options exist */}
+          {allSubcasteOpts.length > 0 && (
+            <FieldRow>
+              <div>
+                <Label
+                  htmlFor="subCaste"
+                  className="text-sm font-medium mb-1.5 block"
+                >
+                  {lbl("subCaste", "Sub Caste")}
+                  {form.caste && (
+                    <span className="text-xs text-muted-foreground ml-1">
+                      (filtered by {form.caste})
+                    </span>
+                  )}
+                </Label>
+                <Select
+                  value={form.subCaste ?? ""}
+                  onValueChange={(v) => setField("subCaste", v)}
+                >
+                  <SelectTrigger id="subCaste" className="h-9">
+                    <SelectValue placeholder="Select sub caste" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subcasteOpts.map((o) => (
+                      <SelectItem key={o.id} value={o.label}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label
+                  htmlFor="religion"
+                  className="text-sm font-medium mb-1.5 block"
+                >
+                  {lbl("religion", "Religion")}
+                </Label>
+                <Select
+                  value={form.religion ?? ""}
+                  onValueChange={(v) => setField("religion", v)}
+                >
+                  <SelectTrigger id="religion" className="h-9">
+                    <SelectValue placeholder="Select religion" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {religionOpts.map((o) => (
+                      <SelectItem key={o.id} value={o.label}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </FieldRow>
+          )}
+          {allSubcasteOpts.length === 0 && (
+            <FieldRow>
+              <div>
+                <Label
+                  htmlFor="religion"
+                  className="text-sm font-medium mb-1.5 block"
+                >
+                  {lbl("religion", "Religion")}
+                </Label>
+                <Select
+                  value={form.religion ?? ""}
+                  onValueChange={(v) => setField("religion", v)}
+                >
+                  <SelectTrigger id="religion" className="h-9">
+                    <SelectValue placeholder="Select religion" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {religionOpts.map((o) => (
+                      <SelectItem key={o.id} value={o.label}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </FieldRow>
+          )}
           <div className="mt-4">
             <Label htmlFor="notes" className="text-sm font-medium mb-1.5 block">
               Notes
@@ -1120,6 +1249,7 @@ export default function VoterFormPage({
                   field={cf}
                   value={getCustomValue(cf.fieldId)}
                   onChange={(v) => setCustomValue(cf.fieldId, v)}
+                  filteredOptions={getFilteredCustomOptions(cf)}
                 />
               ))}
             </div>

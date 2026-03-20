@@ -11,7 +11,27 @@ export function getOptionsByCategory(category: string): DropdownOption[] {
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-export function addOption(category: string, label: string): DropdownOption {
+export function getSubOptions(
+  category: string,
+  parentCategory: string,
+  parentValue: string,
+): DropdownOption[] {
+  return getDropdownOptions()
+    .filter(
+      (o) =>
+        o.category === category &&
+        o.parentCategory === parentCategory &&
+        o.parentValue === parentValue,
+    )
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+export function addOption(
+  category: string,
+  label: string,
+  parentCategory?: string,
+  parentValue?: string,
+): DropdownOption {
   const options = getDropdownOptions();
   const existing = options.filter((o) => o.category === category);
   const maxOrder =
@@ -21,6 +41,8 @@ export function addOption(category: string, label: string): DropdownOption {
     label: label.trim(),
     category,
     sortOrder: maxOrder + 1,
+    ...(parentCategory ? { parentCategory } : {}),
+    ...(parentValue ? { parentValue } : {}),
   };
   options.push(newOption);
   setDropdownOptions(options);
@@ -57,4 +79,5 @@ export const DROPDOWN_CATEGORIES = [
   { value: "maritalStatus", label: "Marital Status" },
   { value: "categoryLabel", label: "Category Label" },
   { value: "caste", label: "Caste" },
+  { value: "subcaste", label: "Sub Caste" },
 ] as const;

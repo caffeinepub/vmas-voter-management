@@ -24,9 +24,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Download,
   FileSpreadsheet,
+  MapPin,
   Plus,
+  RotateCcw,
+  Save,
   Settings2,
   Trash2,
   Upload,
@@ -47,9 +52,17 @@ import {
   deleteOption,
   getOptionsByCategory,
 } from "../store/dropdowns";
-import { getUsers, getVoters, setUsers, setVoters } from "../store/storage";
+import {
+  getFormLabels,
+  getUsers,
+  getVoters,
+  setFormLabels,
+  setUsers,
+  setVoters,
+} from "../store/storage";
 import type {
   CustomFieldType,
+  DropdownOption,
   User,
   UserRole,
   VoterRecord,
@@ -123,10 +136,14 @@ const ROLE_COLORS: Record<UserRole, string> = {
 function DropdownManagerTab() {
   const [selectedCategory, setSelectedCategory] = useState("categoryLabel");
   const [newLabel, setNewLabel] = useState("");
+  const [newParentCaste, setNewParentCaste] = useState("");
   const [options, setOptions] = useState(() =>
     getOptionsByCategory("categoryLabel"),
   );
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
+  const isSubcaste = selectedCategory === "subcaste";
+  const casteOpts = getOptionsByCategory("caste");
 
   const refreshOptions = (cat: string) => {
     setOptions(getOptionsByCategory(cat));
@@ -136,6 +153,7 @@ function DropdownManagerTab() {
     setSelectedCategory(cat);
     setOptions(getOptionsByCategory(cat));
     setNewLabel("");
+    setNewParentCaste("");
   };
 
   const handleAdd = () => {
@@ -143,9 +161,18 @@ function DropdownManagerTab() {
       toast.error("Please enter an option label.");
       return;
     }
-    addOption(selectedCategory, newLabel.trim());
+    if (isSubcaste && !newParentCaste) {
+      toast.error("Please select a parent caste for the sub caste.");
+      return;
+    }
+    if (isSubcaste) {
+      addOption(selectedCategory, newLabel.trim(), "caste", newParentCaste);
+    } else {
+      addOption(selectedCategory, newLabel.trim());
+    }
     refreshOptions(selectedCategory);
     setNewLabel("");
+    setNewParentCaste("");
     toast.success("Option added.");
   };
 
@@ -156,6 +183,16 @@ function DropdownManagerTab() {
     setDeleteTarget(null);
     toast.success("Option deleted.");
   };
+
+  // Group subcaste options by parent caste
+  const groupedSubcaste: Record<string, DropdownOption[]> = {};
+  if (isSubcaste) {
+    for (const opt of options) {
+      const parent = opt.parentValue ?? "(No Parent)";
+      if (!groupedSubcaste[parent]) groupedSubcaste[parent] = [];
+      groupedSubcaste[parent].push(opt);
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -191,8 +228,48 @@ function DropdownManagerTab() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {options.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+          {isSubcaste ? (
+            <div className="mb-4">
+              {Object.keys(groupedSubcaste).length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No sub castes yet. Add one below.
+                </p>
+              ) : (
+                Object.entries(groupedSubcaste).map(([parent, subOpts]) => (
+                  <div key={parent} className="mb-4">
+                    <div
+                      className="text-xs font-bold uppercase tracking-wide px-2 py-1 rounded mb-2"
+                      style={{
+                        background: "rgba(11,8,84,0.08)",
+                        color: "#0b0854",
+                      }}
+                    >
+                      {parent}
+                    </div>
+                    <ul className="space-y-1.5 pl-2">
+                      {subOpts.map((opt) => (
+                        <li
+                          key={opt.id}
+                          className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/50 border"
+                        >
+                          <span className="text-sm">{opt.label}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                            onClick={() => setDeleteTarget(opt.id)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : options.length === 0 ? (
+            <p className="text-sm text-muted-foreground mb-4">
               No options yet. Add one below.
             </p>
           ) : (
@@ -216,12 +293,26 @@ function DropdownManagerTab() {
             </ul>
           )}
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {isSubcaste && (
+              <Select value={newParentCaste} onValueChange={setNewParentCaste}>
+                <SelectTrigger className="h-9 w-40">
+                  <SelectValue placeholder="Parent Caste" />
+                </SelectTrigger>
+                <SelectContent>
+                  {casteOpts.map((c) => (
+                    <SelectItem key={c.id} value={c.label}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <Input
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
-              placeholder="New option label…"
-              className="h-9 flex-1"
+              placeholder={isSubcaste ? "Sub caste name…" : "New option label…"}
+              className="h-9 flex-1 min-w-[140px]"
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
             <Button size="sm" className="gap-1.5 h-9" onClick={handleAdd}>
@@ -258,15 +349,565 @@ function DropdownManagerTab() {
   );
 }
 
+// ---- Form Labels Tab ----
+const STANDARD_FORM_FIELDS = [
+  { key: "voterId", default: "Voter ID" },
+  { key: "fullName", default: "Full Name" },
+  { key: "fatherHusbandName", default: "Father/Husband Name" },
+  { key: "gender", default: "Gender" },
+  { key: "mobile", default: "Mobile" },
+  { key: "address", default: "Address" },
+  { key: "taluka", default: "Taluka" },
+  { key: "district", default: "District" },
+  { key: "boothNumber", default: "Booth Number" },
+  { key: "ward", default: "Ward" },
+  { key: "constituency", default: "Constituency" },
+  { key: "caste", default: "Caste Category" },
+  { key: "subCaste", default: "Sub Caste" },
+  { key: "religion", default: "Religion" },
+  { key: "education", default: "Education" },
+  { key: "profession", default: "Profession" },
+  { key: "maritalStatus", default: "Marital Status" },
+  { key: "categoryLabel", default: "Category Label" },
+  { key: "influenceLevel", default: "Influence Level" },
+];
+
+function FormLabelsTab() {
+  const [labels, setLabels] = useState<Record<string, string>>(() =>
+    getFormLabels(),
+  );
+  const [dirty, setDirty] = useState(false);
+
+  const handleChange = (key: string, value: string) => {
+    setLabels((prev) => ({ ...prev, [key]: value }));
+    setDirty(true);
+  };
+
+  const handleReset = (key: string) => {
+    setLabels((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+    setDirty(true);
+  };
+
+  const handleSave = () => {
+    setFormLabels(labels);
+    setDirty(false);
+    toast.success("Form labels saved.");
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            Customize the labels shown in the voter form. Useful for regional
+            language adaptation or renaming fields.
+          </p>
+        </div>
+        <Button
+          size="sm"
+          className="gap-1.5 h-9"
+          onClick={handleSave}
+          disabled={!dirty}
+          style={dirty ? { background: "#0b0854" } : {}}
+        >
+          <Save className="w-4 h-4" />
+          Save All Labels
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent className="pt-4">
+          <div className="space-y-3">
+            {STANDARD_FORM_FIELDS.map((f) => (
+              <div
+                key={f.key}
+                className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center py-2 border-b last:border-0"
+              >
+                <div>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {f.default}
+                  </span>
+                  <span className="text-xs text-muted-foreground/60 block">
+                    field: {f.key}
+                  </span>
+                </div>
+                <Input
+                  value={labels[f.key] ?? ""}
+                  onChange={(e) => handleChange(f.key, e.target.value)}
+                  placeholder={f.default}
+                  className="h-9 col-span-1"
+                />
+                <div className="flex items-center gap-2">
+                  {labels[f.key] && (
+                    <Badge
+                      variant="outline"
+                      className="text-xs"
+                      style={{ color: "#0b0854", borderColor: "#0b0854" }}
+                    >
+                      Custom
+                    </Badge>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1 text-xs text-muted-foreground"
+                    onClick={() => handleReset(f.key)}
+                    disabled={!labels[f.key]}
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Reset
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ---- Location Hierarchy Tab ----
+function LocationHierarchyTab() {
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedTaluka, setSelectedTaluka] = useState("");
+  const [selectedWard, setSelectedWard] = useState("");
+  const [newDistrict, setNewDistrict] = useState("");
+  const [newTaluka, setNewTaluka] = useState("");
+  const [newWard, setNewWard] = useState("");
+  const [newBooth, setNewBooth] = useState("");
+  const [refresh, setRefresh] = useState(0);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    label: string;
+  } | null>(null);
+
+  const districts = getOptionsByCategory("district");
+  const allTalukas = getOptionsByCategory("taluka");
+  const allWards = getOptionsByCategory("ward");
+  const allBooths = getOptionsByCategory("booth");
+
+  const talukas = selectedDistrict
+    ? allTalukas.filter(
+        (t) => !t.parentValue || t.parentValue === selectedDistrict,
+      )
+    : allTalukas.filter((t) => !t.parentValue);
+
+  const wards = selectedTaluka
+    ? allWards.filter((w) => !w.parentValue || w.parentValue === selectedTaluka)
+    : allWards.filter((w) => !w.parentValue);
+
+  const booths = selectedWard
+    ? allBooths.filter((b) => !b.parentValue || b.parentValue === selectedWard)
+    : allBooths.filter((b) => !b.parentValue);
+
+  const doRefresh = () => setRefresh((r) => r + 1);
+
+  // Suppress unused warning - refresh is used in the key
+  void refresh;
+
+  const handleAddDistrict = () => {
+    if (!newDistrict.trim()) return;
+    addOption("district", newDistrict.trim());
+    setNewDistrict("");
+    doRefresh();
+    toast.success("District added.");
+  };
+
+  const handleAddTaluka = () => {
+    if (!newTaluka.trim()) return;
+    addOption(
+      "taluka",
+      newTaluka.trim(),
+      "district",
+      selectedDistrict || undefined,
+    );
+    setNewTaluka("");
+    doRefresh();
+    toast.success("Taluka added.");
+  };
+
+  const handleAddWard = () => {
+    if (!newWard.trim()) return;
+    addOption("ward", newWard.trim(), "taluka", selectedTaluka || undefined);
+    setNewWard("");
+    doRefresh();
+    toast.success("Ward added.");
+  };
+
+  const handleAddBooth = () => {
+    if (!newBooth.trim()) return;
+    addOption("booth", newBooth.trim(), "ward", selectedWard || undefined);
+    setNewBooth("");
+    doRefresh();
+    toast.success("Booth added.");
+  };
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    deleteOption(deleteTarget.id);
+    setDeleteTarget(null);
+    doRefresh();
+    toast.success("Deleted.");
+  };
+
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-muted-foreground">
+        Set up the District → Taluka → Ward → Booth hierarchy. When a voter
+        selects a district, only relevant talukas are shown, etc.
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* District */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle
+              className="text-xs font-semibold flex items-center gap-1.5"
+              style={{ color: "#0b0854" }}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              Districts
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {districts.length === 0 && (
+                <p className="text-xs text-muted-foreground">None yet</p>
+              )}
+              {districts.map((d) => (
+                <div
+                  key={d.id}
+                  className={`flex items-center justify-between px-2 py-1.5 rounded cursor-pointer text-sm ${
+                    selectedDistrict === d.label
+                      ? "text-white"
+                      : "hover:bg-muted"
+                  }`}
+                  style={
+                    selectedDistrict === d.label
+                      ? { background: "#0b0854" }
+                      : {}
+                  }
+                  onClick={() => {
+                    setSelectedDistrict(
+                      d.label === selectedDistrict ? "" : d.label,
+                    );
+                    setSelectedTaluka("");
+                    setSelectedWard("");
+                  }}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && setSelectedDistrict(d.label)
+                  }
+                >
+                  <span className="truncate">{d.label}</span>
+                  <div className="flex items-center gap-1">
+                    {selectedDistrict === d.label ? (
+                      <ChevronDown className="w-3 h-3 opacity-60" />
+                    ) : (
+                      <ChevronRight className="w-3 h-3 opacity-40" />
+                    )}
+                    <button
+                      type="button"
+                      className="text-destructive hover:opacity-70 p-0.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTarget({ id: d.id, label: d.label });
+                      }}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-1">
+              <Input
+                value={newDistrict}
+                onChange={(e) => setNewDistrict(e.target.value)}
+                placeholder="Add district…"
+                className="h-8 text-xs"
+                onKeyDown={(e) => e.key === "Enter" && handleAddDistrict()}
+              />
+              <Button
+                size="sm"
+                className="h-8 px-2"
+                onClick={handleAddDistrict}
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Taluka */}
+        <Card className={!selectedDistrict ? "opacity-50" : ""}>
+          <CardHeader className="pb-2">
+            <CardTitle
+              className="text-xs font-semibold"
+              style={{ color: "#0b0854" }}
+            >
+              Talukas
+              {selectedDistrict && (
+                <span className="font-normal text-muted-foreground ml-1">
+                  in {selectedDistrict}
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {talukas.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {selectedDistrict ? "None yet" : "Select a district"}
+                </p>
+              )}
+              {talukas.map((t) => (
+                <div
+                  key={t.id}
+                  className={`flex items-center justify-between px-2 py-1.5 rounded cursor-pointer text-sm ${
+                    selectedTaluka === t.label ? "text-white" : "hover:bg-muted"
+                  }`}
+                  style={
+                    selectedTaluka === t.label ? { background: "#0b0854" } : {}
+                  }
+                  onClick={() => {
+                    setSelectedTaluka(
+                      t.label === selectedTaluka ? "" : t.label,
+                    );
+                    setSelectedWard("");
+                  }}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && setSelectedTaluka(t.label)
+                  }
+                >
+                  <span className="truncate">{t.label}</span>
+                  <div className="flex items-center gap-1">
+                    {selectedTaluka === t.label ? (
+                      <ChevronDown className="w-3 h-3 opacity-60" />
+                    ) : (
+                      <ChevronRight className="w-3 h-3 opacity-40" />
+                    )}
+                    <button
+                      type="button"
+                      className="text-destructive hover:opacity-70 p-0.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTarget({ id: t.id, label: t.label });
+                      }}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-1">
+              <Input
+                value={newTaluka}
+                onChange={(e) => setNewTaluka(e.target.value)}
+                placeholder="Add taluka…"
+                className="h-8 text-xs"
+                disabled={!selectedDistrict}
+                onKeyDown={(e) => e.key === "Enter" && handleAddTaluka()}
+              />
+              <Button
+                size="sm"
+                className="h-8 px-2"
+                onClick={handleAddTaluka}
+                disabled={!selectedDistrict}
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Ward */}
+        <Card className={!selectedTaluka ? "opacity-50" : ""}>
+          <CardHeader className="pb-2">
+            <CardTitle
+              className="text-xs font-semibold"
+              style={{ color: "#0b0854" }}
+            >
+              Wards
+              {selectedTaluka && (
+                <span className="font-normal text-muted-foreground ml-1">
+                  in {selectedTaluka}
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {wards.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {selectedTaluka ? "None yet" : "Select a taluka"}
+                </p>
+              )}
+              {wards.map((w) => (
+                <div
+                  key={w.id}
+                  className={`flex items-center justify-between px-2 py-1.5 rounded cursor-pointer text-sm ${
+                    selectedWard === w.label ? "text-white" : "hover:bg-muted"
+                  }`}
+                  style={
+                    selectedWard === w.label ? { background: "#0b0854" } : {}
+                  }
+                  onClick={() =>
+                    setSelectedWard(w.label === selectedWard ? "" : w.label)
+                  }
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && setSelectedWard(w.label)
+                  }
+                >
+                  <span className="truncate">{w.label}</span>
+                  <div className="flex items-center gap-1">
+                    {selectedWard === w.label ? (
+                      <ChevronDown className="w-3 h-3 opacity-60" />
+                    ) : (
+                      <ChevronRight className="w-3 h-3 opacity-40" />
+                    )}
+                    <button
+                      type="button"
+                      className="text-destructive hover:opacity-70 p-0.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTarget({ id: w.id, label: w.label });
+                      }}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-1">
+              <Input
+                value={newWard}
+                onChange={(e) => setNewWard(e.target.value)}
+                placeholder="Add ward…"
+                className="h-8 text-xs"
+                disabled={!selectedTaluka}
+                onKeyDown={(e) => e.key === "Enter" && handleAddWard()}
+              />
+              <Button
+                size="sm"
+                className="h-8 px-2"
+                onClick={handleAddWard}
+                disabled={!selectedTaluka}
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Booth */}
+        <Card className={!selectedWard ? "opacity-50" : ""}>
+          <CardHeader className="pb-2">
+            <CardTitle
+              className="text-xs font-semibold"
+              style={{ color: "#0b0854" }}
+            >
+              Booths
+              {selectedWard && (
+                <span className="font-normal text-muted-foreground ml-1">
+                  in {selectedWard}
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {booths.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {selectedWard ? "None yet" : "Select a ward"}
+                </p>
+              )}
+              {booths.map((b) => (
+                <div
+                  key={b.id}
+                  className="flex items-center justify-between px-2 py-1.5 rounded text-sm hover:bg-muted"
+                >
+                  <span className="truncate">{b.label}</span>
+                  <button
+                    type="button"
+                    className="text-destructive hover:opacity-70 p-0.5"
+                    onClick={() =>
+                      setDeleteTarget({ id: b.id, label: b.label })
+                    }
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-1">
+              <Input
+                value={newBooth}
+                onChange={(e) => setNewBooth(e.target.value)}
+                placeholder="Add booth…"
+                className="h-8 text-xs"
+                disabled={!selectedWard}
+                onKeyDown={(e) => e.key === "Enter" && handleAddBooth()}
+              />
+              <Button
+                size="sm"
+                className="h-8 px-2"
+                onClick={handleAddBooth}
+                disabled={!selectedWard}
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Location</AlertDialogTitle>
+            <AlertDialogDescription>
+              Delete <strong>{deleteTarget?.label}</strong>? Child items may
+              become orphaned.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
 // ---- Custom Fields Tab ----
 function CustomFieldsTab() {
   const [fields, setFields] = useState(() => getAllCustomFields());
   const [newLabel, setNewLabel] = useState("");
   const [newType, setNewType] = useState<CustomFieldType>("text");
   const [newOptions, setNewOptions] = useState("");
+  const [newParentFieldId, setNewParentFieldId] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const needsOptions = newType === "dropdown" || newType === "multiselect";
+  const dropdownFields = fields.filter(
+    (f) => f.fieldType === "dropdown" || f.fieldType === "multiselect",
+  );
 
   const handleAdd = () => {
     if (!newLabel.trim()) {
@@ -283,10 +924,16 @@ function CustomFieldsTab() {
           .map((o) => o.trim())
           .filter(Boolean)
       : [];
-    addCustomField(newLabel.trim(), newType, opts);
+    addCustomField(
+      newLabel.trim(),
+      newType,
+      opts,
+      newParentFieldId || undefined,
+    );
     setFields(getAllCustomFields());
     setNewLabel("");
     setNewOptions("");
+    setNewParentFieldId("");
     toast.success("Custom field added.");
   };
 
@@ -325,35 +972,59 @@ function CustomFieldsTab() {
                     <th className="text-left py-2 font-semibold text-xs uppercase text-muted-foreground">
                       Options
                     </th>
+                    <th className="text-left py-2 font-semibold text-xs uppercase text-muted-foreground">
+                      Parent
+                    </th>
                     <th className="text-right py-2 font-semibold text-xs uppercase text-muted-foreground">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {fields.map((f) => (
-                    <tr key={f.fieldId} className="border-b last:border-0">
-                      <td className="py-2 font-medium">{f.label}</td>
-                      <td className="py-2">
-                        <Badge variant="outline" className="text-xs">
-                          {FIELD_TYPE_LABELS[f.fieldType]}
-                        </Badge>
-                      </td>
-                      <td className="py-2 text-muted-foreground text-xs">
-                        {f.options.length > 0 ? f.options.join(", ") : "—"}
-                      </td>
-                      <td className="py-2 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteTarget(f.fieldId)}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                  {fields.map((f) => {
+                    const parentField = f.parentFieldId
+                      ? fields.find((pf) => pf.fieldId === f.parentFieldId)
+                      : null;
+                    return (
+                      <tr key={f.fieldId} className="border-b last:border-0">
+                        <td className="py-2 font-medium">{f.label}</td>
+                        <td className="py-2">
+                          <Badge variant="outline" className="text-xs">
+                            {FIELD_TYPE_LABELS[f.fieldType]}
+                          </Badge>
+                        </td>
+                        <td className="py-2 text-muted-foreground text-xs">
+                          {f.options.length > 0 ? f.options.join(", ") : "—"}
+                        </td>
+                        <td className="py-2 text-xs">
+                          {parentField ? (
+                            <Badge
+                              variant="outline"
+                              className="text-xs"
+                              style={{
+                                color: "#0b0854",
+                                borderColor: "#0b0854",
+                              }}
+                            >
+                              {parentField.label}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="py-2 text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                            onClick={() => setDeleteTarget(f.fieldId)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -363,9 +1034,7 @@ function CustomFieldsTab() {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">
-            Add Custom Field
-          </CardTitle>
+          <CardTitle className="text-sm font-semibold">Add New Field</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -380,7 +1049,7 @@ function CustomFieldsTab() {
                 id="cfLabel"
                 value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
-                placeholder="e.g. Party Affiliation"
+                placeholder="e.g. Blood Group"
                 className="h-9"
               />
             </div>
@@ -427,6 +1096,37 @@ function CustomFieldsTab() {
                   placeholder="Option 1, Option 2, Option 3…"
                   className="h-9"
                 />
+              </div>
+            )}
+            {needsOptions && dropdownFields.length > 0 && (
+              <div className="md:col-span-2">
+                <Label className="text-sm font-medium mb-1.5 block">
+                  Parent Field{" "}
+                  <span className="text-muted-foreground font-normal">
+                    (optional)
+                  </span>
+                </Label>
+                <Select
+                  value={newParentFieldId}
+                  onValueChange={setNewParentFieldId}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="None (independent field)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None (independent field)</SelectItem>
+                    {dropdownFields.map((pf) => (
+                      <SelectItem key={pf.fieldId} value={pf.fieldId}>
+                        {pf.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  When a parent field is selected, this field will only show
+                  options that start with the selected parent value in the voter
+                  form.
+                </p>
               </div>
             )}
           </div>
@@ -703,6 +1403,7 @@ const STANDARD_COLUMNS = [
   { key: "organizationName", label: "Organization Name", required: false },
   { key: "maritalStatus", label: "Marital Status", required: false },
   { key: "caste", label: "Caste", required: false },
+  { key: "subCaste", label: "Sub Caste", required: false },
   { key: "religion", label: "Religion", required: false },
   {
     key: "categoryLabel",
@@ -769,6 +1470,7 @@ function ImportVotersTab() {
       "Kumar Farms",
       "Married",
       "Maratha",
+      "96 Kuli",
       "Hindu",
       "Supporter",
       "4",
@@ -931,6 +1633,7 @@ function ImportVotersTab() {
           organizationName: getVal("Organization Name") || undefined,
           maritalStatus: getVal("Marital Status") || undefined,
           caste: getVal("Caste") || undefined,
+          subCaste: getVal("Sub Caste") || undefined,
           religion: getVal("Religion") || undefined,
           categoryLabel: getVal("Category Label") || undefined,
           influenceLevel,
@@ -1019,7 +1722,11 @@ function ImportVotersTab() {
               {STANDARD_COLUMNS.map((c) => (
                 <span
                   key={c.key}
-                  className={`text-xs px-2 py-0.5 rounded font-medium ${c.required ? "bg-amber-100 text-amber-800" : "bg-muted text-muted-foreground"}`}
+                  className={`text-xs px-2 py-0.5 rounded font-medium ${
+                    c.required
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-muted text-muted-foreground"
+                  }`}
                 >
                   {c.label}
                   {c.required ? " *" : ""}
@@ -1049,7 +1756,11 @@ function ImportVotersTab() {
         <CardContent>
           <button
             type="button"
-            className={`w-full border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/30 hover:border-primary/50"}`}
+            className={`w-full border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+              isDragging
+                ? "border-primary bg-primary/5"
+                : "border-muted-foreground/30 hover:border-primary/50"
+            }`}
             onDragOver={(e) => {
               e.preventDefault();
               setIsDragging(true);
@@ -1172,14 +1883,18 @@ export default function SettingsPage() {
           Settings
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Manage dropdown options, custom fields, user accounts, and import
-          voter data
+          Manage dropdown options, form labels, location hierarchy, custom
+          fields, user accounts, and import voter data
         </p>
       </div>
 
       <Tabs defaultValue="dropdowns">
-        <TabsList className="mb-5 flex-wrap">
+        <TabsList className="mb-5 flex-wrap h-auto gap-1">
           <TabsTrigger value="dropdowns">Dropdown Manager</TabsTrigger>
+          <TabsTrigger value="formLabels">Form Labels</TabsTrigger>
+          <TabsTrigger value="locationHierarchy">
+            Location Hierarchy
+          </TabsTrigger>
           <TabsTrigger value="customFields">Custom Fields</TabsTrigger>
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="import" className="gap-1.5">
@@ -1190,6 +1905,12 @@ export default function SettingsPage() {
 
         <TabsContent value="dropdowns">
           <DropdownManagerTab />
+        </TabsContent>
+        <TabsContent value="formLabels">
+          <FormLabelsTab />
+        </TabsContent>
+        <TabsContent value="locationHierarchy">
+          <LocationHierarchyTab />
         </TabsContent>
         <TabsContent value="customFields">
           <CustomFieldsTab />

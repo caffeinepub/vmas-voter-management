@@ -159,6 +159,25 @@ export default function DashboardPage() {
       .slice(0, 8);
   }, [voters]);
 
+  const casteData = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const v of voters) {
+      if (v.caste) map[v.caste] = (map[v.caste] || 0) + 1;
+    }
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+  }, [voters]);
+
+  const religionData = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const v of voters) {
+      if (v.religion) map[v.religion] = (map[v.religion] || 0) + 1;
+    }
+    return Object.entries(map).map(([name, value]) => ({ name, value }));
+  }, [voters]);
+
   const growthData = useMemo(() => {
     const now = new Date();
     const months = Array.from({ length: 12 }, (_, i) => {
@@ -189,7 +208,6 @@ export default function DashboardPage() {
       }
     }
 
-    // Cumulative approach: per-month count
     const perMonth: Record<string, number> = {};
     for (const v of voters) {
       const monthKey = format(new Date(v.createdAt), "MMM yy");
@@ -496,6 +514,93 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      {/* Charts Row 3 — Caste & Religion */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Caste Distribution - horizontal bar */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold">
+              Caste Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72">
+              {casteData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={casteData}
+                    layout="vertical"
+                    margin={{ left: 80, right: 16, top: 8, bottom: 8 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 11 }} />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fontSize: 11 }}
+                      width={80}
+                    />
+                    <Tooltip />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                      {casteData.map((entry, idx) => (
+                        <Cell
+                          key={entry.name}
+                          fill={CHART_COLORS[idx % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <EmptyChart />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Religion Distribution - pie */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold">
+              Religion Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72">
+              {religionData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={religionData}
+                      cx="50%"
+                      cy="45%"
+                      outerRadius={100}
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, percent }) =>
+                        `${name} ${(percent * 100).toFixed(0)}%`
+                      }
+                      labelLine
+                    >
+                      {religionData.map((entry, idx) => (
+                        <Cell
+                          key={entry.name}
+                          fill={CHART_COLORS[idx % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <EmptyChart />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Voter Growth Chart */}
       <Card>
         <CardHeader className="pb-2">
@@ -534,7 +639,7 @@ export default function DashboardPage() {
       </Card>
 
       <footer className="text-center text-xs pb-4" style={{ color: "#000000" }}>
-        © 2026. Built by SJ
+        © {new Date().getFullYear()}. Made by Tattva Innovation
       </footer>
     </div>
   );

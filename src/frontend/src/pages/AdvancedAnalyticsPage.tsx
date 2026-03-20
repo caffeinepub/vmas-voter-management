@@ -92,6 +92,7 @@ export default function AdvancedAnalyticsPage() {
     district: "all",
     ward: "all",
     caste: "all",
+    subCaste: "all",
     religion: "all",
     category: "all",
     gender: "all",
@@ -99,22 +100,30 @@ export default function AdvancedAnalyticsPage() {
     constituency: "all",
   });
 
-  // Build unique options from data
+  // Build unique options from data — subCaste cascades from caste selection
   const options = useMemo(() => {
     const unique = (arr: (string | undefined)[]): string[] =>
       [...new Set(arr.filter(Boolean))].sort() as string[];
+
+    // For subCaste: if a caste is selected, only show subcastes from voters of that caste
+    const subCasteBase =
+      filters.caste !== "all"
+        ? allVoters.filter((v) => v.caste === filters.caste)
+        : allVoters;
+
     return {
       taluka: unique(allVoters.map((v) => v.taluka)),
       district: unique(allVoters.map((v) => v.district)),
       ward: unique(allVoters.map((v) => v.ward)),
       caste: unique(allVoters.map((v) => v.caste)),
+      subCaste: unique(subCasteBase.map((v) => v.subCaste)),
       religion: unique(allVoters.map((v) => v.religion)),
       category: unique(allVoters.map((v) => v.categoryLabel)),
       gender: unique(allVoters.map((v) => v.gender)),
       booth: unique(allVoters.map((v) => v.boothNumber)),
       constituency: unique(allVoters.map((v) => v.constituency)),
     };
-  }, [allVoters]);
+  }, [allVoters, filters.caste]);
 
   // Apply filters
   const filtered = useMemo(() => {
@@ -124,6 +133,8 @@ export default function AdvancedAnalyticsPage() {
         return false;
       if (filters.ward !== "all" && v.ward !== filters.ward) return false;
       if (filters.caste !== "all" && v.caste !== filters.caste) return false;
+      if (filters.subCaste !== "all" && v.subCaste !== filters.subCaste)
+        return false;
       if (filters.religion !== "all" && v.religion !== filters.religion)
         return false;
       if (filters.category !== "all" && v.categoryLabel !== filters.category)
@@ -152,6 +163,17 @@ export default function AdvancedAnalyticsPage() {
       .slice(0, 15);
   }, [filtered]);
 
+  const subcasteData = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const v of filtered) {
+      if (v.subCaste) map[v.subCaste] = (map[v.subCaste] || 0) + 1;
+    }
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 12);
+  }, [filtered]);
+
   const religionData = useMemo(() => {
     const map: Record<string, number> = {};
     for (const v of filtered) {
@@ -175,28 +197,32 @@ export default function AdvancedAnalyticsPage() {
     for (const v of filtered) {
       if (v.district) map[v.district] = (map[v.district] || 0) + 1;
     }
-    return Object.entries(map).map(([name, value]) => ({ name, value }));
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
   }, [filtered]);
 
-  // Category by Taluka stacked bar
   const categoryByTalukaData = useMemo(() => {
     const map: Record<
       string,
       { Supporter: number; Neutral: number; Opponent: number }
     > = {};
     for (const v of filtered) {
-      if (!v.taluka) continue;
-      if (!map[v.taluka])
-        map[v.taluka] = { Supporter: 0, Neutral: 0, Opponent: 0 };
-      const cat = v.categoryLabel as "Supporter" | "Neutral" | "Opponent";
-      if (cat && map[v.taluka][cat] !== undefined) {
-        map[v.taluka][cat]++;
-      }
+      const t = v.taluka || "Unknown";
+      if (!map[t]) map[t] = { Supporter: 0, Neutral: 0, Opponent: 0 };
+      if (v.categoryLabel === "Supporter") map[t].Supporter++;
+      else if (v.categoryLabel === "Neutral") map[t].Neutral++;
+      else if (v.categoryLabel === "Opponent") map[t].Opponent++;
     }
-    return Object.entries(map).map(([taluka, counts]) => ({
-      taluka,
-      ...counts,
-    }));
+    return Object.entries(map)
+      .map(([taluka, counts]) => ({ taluka, ...counts }))
+      .sort(
+        (a, b) =>
+          b.Supporter +
+          b.Neutral +
+          b.Opponent -
+          (a.Supporter + a.Neutral + a.Opponent),
+      );
   }, [filtered]);
 
   const boothData = useMemo(() => {
@@ -227,8 +253,14 @@ export default function AdvancedAnalyticsPage() {
     [filtered],
   );
 
-  const setFilter = (key: string, value: string) =>
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  // Reset subCaste when caste changes
+  const setFilter = (key: string, value: string) => {
+    setFilters((prev) => {
+      const updated = { ...prev, [key]: value };
+      if (key === "caste") updated.subCaste = "all";
+      return updated;
+    });
+  };
 
   const FilterSelect = ({
     label,
@@ -313,6 +345,11 @@ export default function AdvancedAnalyticsPage() {
           />
           <FilterSelect label="Caste" filterKey="caste" opts={options.caste} />
           <FilterSelect
+            label="Sub Caste"
+            filterKey="subCaste"
+            opts={options.subCaste}
+          />
+          <FilterSelect
             label="Religion"
             filterKey="religion"
             opts={options.religion}
@@ -377,7 +414,7 @@ export default function AdvancedAnalyticsPage() {
         />
       </div>
 
-      {/* Charts Row 1 */}
+      {/* Charts Row 1 — Caste & Sub Caste */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Caste Distribution - horizontal bar */}
         <Card>
@@ -421,6 +458,56 @@ export default function AdvancedAnalyticsPage() {
           </CardContent>
         </Card>
 
+        {/* Sub Caste Distribution - horizontal bar */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold">
+              Sub Caste Distribution
+              {filters.caste !== "all" && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  ({filters.caste})
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              {subcasteData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={subcasteData}
+                    layout="vertical"
+                    margin={{ left: 100, right: 16, top: 8, bottom: 8 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 10 }} />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      width={100}
+                      tick={{ fontSize: 10 }}
+                    />
+                    <Tooltip />
+                    <Bar dataKey="value" name="Voters" radius={[0, 4, 4, 0]}>
+                      {subcasteData.map((entry, i) => (
+                        <Cell
+                          key={entry.name}
+                          fill={CHART_COLORS[i % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <EmptyChart message="Select a caste filter to see subcaste breakdown" />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Row 2 — Religion & Taluka */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Religion Distribution - pie */}
         <Card>
           <CardHeader className="pb-2">
@@ -462,10 +549,7 @@ export default function AdvancedAnalyticsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Taluka-wise Voter Count - vertical bar */}
         <Card>
           <CardHeader className="pb-2">
@@ -526,7 +610,10 @@ export default function AdvancedAnalyticsPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
 
+      {/* Charts Row 3 — District & Category by Taluka */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* District Breakdown - pie */}
         <Card>
           <CardHeader className="pb-2">
@@ -568,10 +655,7 @@ export default function AdvancedAnalyticsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Charts Row 3 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category by Taluka - stacked bar */}
         <Card>
           <CardHeader className="pb-2">
@@ -633,7 +717,10 @@ export default function AdvancedAnalyticsPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
 
+      {/* Charts Row 4 — Booth */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Booth-wise Count - horizontal bar top 10 */}
         <Card>
           <CardHeader className="pb-2">
@@ -678,7 +765,7 @@ export default function AdvancedAnalyticsPage() {
       </div>
 
       <footer className="text-center text-xs pb-4" style={{ color: "#000000" }}>
-        © 2026. Made by Tattva Innovation
+        © {new Date().getFullYear()}. Made by Tattva Innovation
       </footer>
     </div>
   );

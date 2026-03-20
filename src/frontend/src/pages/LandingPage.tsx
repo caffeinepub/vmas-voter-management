@@ -10,6 +10,7 @@ import {
   FileText,
   FlaskConical,
   MapPin,
+  MapPinned,
   MessageCircle,
   Moon,
   Notebook,
@@ -153,6 +154,37 @@ const screenshots = [
     ],
     badge: "Voter List",
     reverse: false,
+  },
+];
+
+const vlpUseCases = [
+  {
+    icon: TrendingUp,
+    title: "Election History Tracking",
+    description:
+      "Track last 5 years of election results booth-by-booth. Know who won, by how much, and the trend — before you plan a single visit.",
+    color: "#1565c0",
+  },
+  {
+    icon: Brain,
+    title: "AI-Powered Insights",
+    description:
+      "AI calculates win probability, classifies booths as Strong/Swing/Weak, and surfaces the top caste influences driving each result.",
+    color: "#6a1b9a",
+  },
+  {
+    icon: Users,
+    title: "Caste & Demographics Analysis",
+    description:
+      "See caste breakdown from real voter data for any taluka, village, or booth. Know which community dominates — and which party they lean toward.",
+    color: "#00897b",
+  },
+  {
+    icon: Notebook,
+    title: "Field Notes & Reports",
+    description:
+      "Tag notes, photos, and PDFs to specific locations. Generate print-ready PDF reports with charts, insights, and ground intelligence.",
+    color: "#e65100",
   },
 ];
 
@@ -462,6 +494,169 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </section>
 
+      {/* VLP — Micro-Level Campaign Intelligence */}
+      <section
+        className="py-24"
+        style={{
+          background:
+            "linear-gradient(135deg, #0b0854 0%, #1a1580 50%, #0d1a6e 100%)",
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <div
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm mb-5 font-semibold"
+              style={{
+                background: "rgba(227,222,197,0.12)",
+                color: "#e3dec5",
+                border: "1px solid rgba(227,222,197,0.25)",
+              }}
+            >
+              <MapPinned className="w-3.5 h-3.5" />
+              Village Level Program (VLP)
+            </div>
+            <h2
+              className="font-display text-3xl sm:text-5xl font-bold mb-5 leading-tight"
+              style={{ color: "#e3dec5" }}
+            >
+              Booth-Level Political Intelligence
+            </h2>
+            <p
+              className="text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed"
+              style={{ color: "rgba(227,222,197,0.7)" }}
+            >
+              Go beyond voter lists. VLP combines real voter data, 5-year
+              election history, AI analysis, and field notes to give your
+              campaign micro-level strategy for every single booth.
+            </p>
+          </motion.div>
+
+          {/* VLP Dashboard Mock */}
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            viewport={{ once: true }}
+            className="mb-14"
+          >
+            <div
+              className="rounded-2xl overflow-hidden shadow-2xl border"
+              style={{ borderColor: "rgba(227,222,197,0.2)" }}
+            >
+              {/* Browser chrome */}
+              <div
+                className="flex items-center gap-2 px-4 py-3"
+                style={{ background: "#0d0a60" }}
+              >
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ background: "#ff5f57" }}
+                />
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ background: "#febc2e" }}
+                />
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ background: "#28c840" }}
+                />
+                <div
+                  className="flex-1 h-6 rounded ml-3 flex items-center px-3 text-xs"
+                  style={{
+                    background: "rgba(227,222,197,0.08)",
+                    color: "rgba(227,222,197,0.5)",
+                    fontSize: "11px",
+                  }}
+                >
+                  surveymitra.app · Village Level Program
+                </div>
+              </div>
+              <img
+                src="/assets/generated/vlp-dashboard-mock.dim_1200x750.png"
+                alt="VLP Dashboard — Booth-level election intelligence"
+                className="w-full block"
+              />
+            </div>
+            <p
+              className="text-center text-sm mt-3"
+              style={{ color: "rgba(227,222,197,0.45)" }}
+            >
+              VLP Dashboard — Election results, caste analysis, AI insights, and
+              field notes in one view
+            </p>
+          </motion.div>
+
+          {/* VLP Use Case Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {vlpUseCases.map((uc, i) => (
+              <motion.div
+                key={uc.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="rounded-2xl p-6"
+                style={{
+                  background: "rgba(227,222,197,0.06)",
+                  border: "1px solid rgba(227,222,197,0.12)",
+                }}
+              >
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                  style={{ background: `${uc.color}30` }}
+                >
+                  <uc.icon className="w-6 h-6" style={{ color: uc.color }} />
+                </div>
+                <h3
+                  className="font-bold text-base mb-2 leading-tight"
+                  style={{ color: "#e3dec5" }}
+                >
+                  {uc.title}
+                </h3>
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: "rgba(227,222,197,0.6)" }}
+                >
+                  {uc.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* VLP CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="text-center mt-12"
+          >
+            <Button
+              onClick={onNavigate}
+              size="lg"
+              data-ocid="landing.vlp.primary_button"
+              className="text-base px-8 h-12 font-semibold"
+              style={{ background: "#e3dec5", color: "#0b0854" }}
+            >
+              Explore VLP Dashboard
+              <ChevronRight className="w-5 h-5 ml-1" />
+            </Button>
+            <p
+              className="text-sm mt-3"
+              style={{ color: "rgba(227,222,197,0.45)" }}
+            >
+              Sign in to access Village Level Program and all features
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Campaign Stories Image Section */}
       <section className="py-20" style={{ background: "#f7f5ee" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -758,7 +953,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                 color: "#6a1b9a",
               },
               {
-                icon: MapPin,
+                icon: MapPinned,
                 name: "Village Level Program (VLP)",
                 desc: "Micro-level political intelligence combining voter data, election history, AI insights.",
                 useCase:

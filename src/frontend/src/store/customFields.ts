@@ -13,6 +13,7 @@ export function addCustomField(
   label: string,
   fieldType: CustomFieldType,
   options: string[],
+  parentFieldId?: string,
 ): CustomField {
   const fields = getCustomFields();
   const maxOrder =
@@ -24,10 +25,30 @@ export function addCustomField(
     options: options.map((o) => o.trim()).filter(Boolean),
     sortOrder: maxOrder + 1,
     createdAt: Date.now(),
+    ...(parentFieldId ? { parentFieldId } : {}),
   };
   fields.push(newField);
   setCustomFields(fields);
   return newField;
+}
+
+export function updateCustomField(
+  fieldId: string,
+  label: string,
+  options: string[],
+  parentFieldId?: string,
+): boolean {
+  const fields = getCustomFields();
+  const idx = fields.findIndex((f) => f.fieldId === fieldId);
+  if (idx === -1) return false;
+  fields[idx] = {
+    ...fields[idx],
+    label: label.trim(),
+    options: options.map((o) => o.trim()).filter(Boolean),
+    ...(parentFieldId !== undefined ? { parentFieldId } : {}),
+  };
+  setCustomFields(fields);
+  return true;
 }
 
 export function deleteCustomField(fieldId: string): boolean {

@@ -186,12 +186,26 @@ export default function VLPPage() {
     return Array.from(set).sort();
   }, [allVoters, selTaluka]);
 
-  const wardOptions = useMemo(() => {
-    if (!selBooth) return [];
+  const villageOptions = useMemo(() => {
+    if (!selTaluka) return [];
     const set = new Set<string>();
-    for (const v of allVoters)
-      if (v.taluka === selTaluka && v.boothNumber === selBooth && v.ward)
-        set.add(v.ward);
+    for (const r of allElectionResults) {
+      if (r.taluka === selTaluka && r.village) set.add(r.village);
+    }
+    for (const n of allFieldNotes) {
+      if (n.taluka === selTaluka && n.village) set.add(n.village);
+    }
+    return Array.from(set).sort();
+  }, [allElectionResults, allFieldNotes, selTaluka]);
+
+  const wardOptions = useMemo(() => {
+    if (!selTaluka) return [];
+    const set = new Set<string>();
+    for (const v of allVoters) {
+      if (v.taluka === selTaluka && v.ward) {
+        if (!selBooth || v.boothNumber === selBooth) set.add(v.ward);
+      }
+    }
     return Array.from(set).sort();
   }, [allVoters, selTaluka, selBooth]);
 
@@ -263,6 +277,39 @@ export default function VLPPage() {
     }
     return Object.entries(map)
       .map(([caste, d]) => ({ caste, ...d }))
+      .sort((a, b) => b.total - a.total);
+  }, [filteredVoters]);
+
+  // ---- Sub Caste Analysis ----
+  const subcasteData = useMemo(() => {
+    const map: Record<
+      string,
+      {
+        total: number;
+        caste: string;
+        supporter: number;
+        neutral: number;
+        opponent: number;
+      }
+    > = {};
+    for (const v of filteredVoters) {
+      if (!v.subCaste) continue;
+      const key = v.subCaste;
+      if (!map[key])
+        map[key] = {
+          total: 0,
+          caste: v.caste || "",
+          supporter: 0,
+          neutral: 0,
+          opponent: 0,
+        };
+      map[key].total++;
+      if (v.categoryLabel === "Supporter") map[key].supporter++;
+      else if (v.categoryLabel === "Neutral") map[key].neutral++;
+      else if (v.categoryLabel === "Opponent") map[key].opponent++;
+    }
+    return Object.entries(map)
+      .map(([subcaste, data]) => ({ subcaste, ...data }))
       .sort((a, b) => b.total - a.total);
   }, [filteredVoters]);
 
@@ -1161,6 +1208,29 @@ ${
   </tr></thead>
   <tbody>${casteBarsHtml}</tbody>
 </table>
+<h3>Sub Caste Distribution</h3>
+${
+  subcasteData.length > 0
+    ? `
+<table border="1" style="width:100%; border-collapse:collapse; font-size:12px; margin-top:8px;">
+  <thead><tr style="background:#0b0854;color:white;">
+    <th style="padding:4px 8px">Sub Caste</th><th style="padding:4px 8px">Caste</th><th style="padding:4px 8px">Total</th><th style="padding:4px 8px">Supporter</th><th style="padding:4px 8px">Neutral</th><th style="padding:4px 8px">Opponent</th>
+  </tr></thead>
+  <tbody>${subcasteData
+    .map(
+      (s) => `<tr>
+    <td style="padding:4px 8px">${s.subcaste}</td>
+    <td style="padding:4px 8px">${s.caste}</td>
+    <td style="padding:4px 8px;text-align:center;font-weight:bold">${s.total}</td>
+    <td style="padding:4px 8px;text-align:center;color:#388e3c">${s.supporter}</td>
+    <td style="padding:4px 8px;text-align:center;color:#f57f17">${s.neutral}</td>
+    <td style="padding:4px 8px;text-align:center;color:#c62828">${s.opponent}</td>
+  </tr>`,
+    )
+    .join("")}</tbody>
+</table>`
+    : "<p>No subcaste data</p>"
+}
 </div>
 
 <!-- AI INSIGHTS SECTION -->
@@ -1268,14 +1338,21 @@ ${
             {/* Village */}
             <div>
               <Label className="text-xs mb-1 block">Village</Label>
-              <Input
-                placeholder="Enter village"
+              <select
                 value={selVillage}
                 onChange={(e) => setSelVillage(e.target.value)}
                 disabled={!selTaluka}
+                className="w-full h-9 rounded-md border border-input text-sm px-2"
                 style={{ background: selTaluka ? "#e3dec5" : undefined }}
-                data-ocid="vlp.village.input"
-              />
+                data-ocid="vlp.village.select"
+              >
+                <option value="">All Villages</option>
+                {villageOptions.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Booth */}
@@ -1307,9 +1384,9 @@ ${
               <select
                 value={selWard}
                 onChange={(e) => setSelWard(e.target.value)}
-                disabled={!selBooth}
+                disabled={!selTaluka}
                 className="w-full h-9 rounded-md border border-input text-sm px-2"
-                style={{ background: selBooth ? "#e3dec5" : undefined }}
+                style={{ background: selTaluka ? "#e3dec5" : undefined }}
                 data-ocid="vlp.ward.select"
               >
                 <option value="">All Wards</option>
@@ -1996,6 +2073,53 @@ ${
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Sub Caste Distribution */}
+                  {subcasteData.length > 0 && (
+                    <div className="mt-4">
+                      <h4
+                        className="font-semibold text-sm mb-2"
+                        style={{ color: "#0b0854" }}
+                      >
+                        Sub Caste Distribution
+                      </h4>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <BarChart
+                          data={subcasteData.slice(0, 10)}
+                          layout="vertical"
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" tick={{ fontSize: 10 }} />
+                          <YAxis
+                            dataKey="subcaste"
+                            type="category"
+                            width={110}
+                            tick={{ fontSize: 10 }}
+                          />
+                          <RechartsTooltip />
+                          <Legend />
+                          <Bar
+                            dataKey="supporter"
+                            name="Supporter"
+                            stackId="a"
+                            fill="#388e3c"
+                          />
+                          <Bar
+                            dataKey="neutral"
+                            name="Neutral"
+                            stackId="a"
+                            fill="#f57f17"
+                          />
+                          <Bar
+                            dataKey="opponent"
+                            name="Opponent"
+                            stackId="a"
+                            fill="#c62828"
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </>
               )}
             </CardContent>

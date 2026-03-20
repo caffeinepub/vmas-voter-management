@@ -201,6 +201,17 @@
     background-color: #ffffff !important;
   }
 
+  /* Solid white backgrounds for all dialog and alert-dialog popups */
+  [data-slot="dialog-content"] {
+    background-color: #ffffff !important;
+    color: #1a1a2e !important;
+  }
+
+  [data-slot="alert-dialog-content"] {
+    background-color: #ffffff !important;
+    color: #1a1a2e !important;
+  }
+
   /* Landing page grid pattern */
   .hero-grid-pattern {
     background-image: linear-gradient(

@@ -20,6 +20,8 @@ export interface DropdownOption {
   label: string;
   category: string;
   sortOrder: number;
+  parentValue?: string;
+  parentCategory?: string;
 }
 
 export type CustomFieldType =
@@ -37,6 +39,7 @@ export interface CustomField {
   options: string[];
   sortOrder: number;
   createdAt: number;
+  parentFieldId?: string;
 }
 
 export interface CustomFieldValue {
@@ -66,6 +69,7 @@ export interface VoterRecord {
   organizationName?: string;
   maritalStatus?: string;
   caste?: string;
+  subCaste?: string;
   religion?: string;
   categoryLabel?: string;
   influenceLevel?: number;
