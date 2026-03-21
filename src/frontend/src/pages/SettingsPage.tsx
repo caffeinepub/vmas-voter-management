@@ -213,6 +213,13 @@ function DropdownManagerTab() {
           </SelectContent>
         </Select>
       </div>
+      {(selectedCategory === "caste" || selectedCategory === "subcaste") && (
+        <p className="text-xs text-muted-foreground mt-1">
+          {selectedCategory === "caste"
+            ? 'Caste Category options appear in the voter form. Add subcastes under "Sub Caste" category with the parent caste set.'
+            : "Sub Caste options are filtered by their parent Caste Category in the voter form."}
+        </p>
+      )}
 
       <Card>
         <CardHeader className="pb-2">
@@ -1402,7 +1409,7 @@ const STANDARD_COLUMNS = [
   },
   { key: "organizationName", label: "Organization Name", required: false },
   { key: "maritalStatus", label: "Marital Status", required: false },
-  { key: "caste", label: "Caste", required: false },
+  { key: "caste", label: "Caste Category", required: false },
   { key: "subCaste", label: "Sub Caste", required: false },
   { key: "religion", label: "Religion", required: false },
   {
@@ -1632,7 +1639,7 @@ function ImportVotersTab() {
           professionalCategory: getVal("Professional Category") || undefined,
           organizationName: getVal("Organization Name") || undefined,
           maritalStatus: getVal("Marital Status") || undefined,
-          caste: getVal("Caste") || undefined,
+          caste: getVal("Caste Category") || undefined,
           subCaste: getVal("Sub Caste") || undefined,
           religion: getVal("Religion") || undefined,
           categoryLabel: getVal("Category Label") || undefined,

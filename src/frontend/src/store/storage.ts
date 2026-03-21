@@ -9,7 +9,7 @@ import type {
   VoterRecord,
 } from "./types";
 
-const DATA_VERSION = "v3";
+const DATA_VERSION = "v5";
 const DATA_VERSION_KEY = "vmas_data_version";
 
 const KEYS = {
@@ -366,6 +366,144 @@ const CASTE_DEFAULTS: DropdownOption[] = [
     sortOrder: 2,
     parentCategory: "caste",
     parentValue: "Rajput",
+  },
+];
+
+const LOCATION_DEFAULTS: DropdownOption[] = [
+  // Districts
+  {
+    id: "dist_1",
+    label: "Nashik District",
+    category: "district",
+    sortOrder: 1,
+  },
+  { id: "dist_2", label: "Pune District", category: "district", sortOrder: 2 },
+  {
+    id: "dist_3",
+    label: "Kolhapur District",
+    category: "district",
+    sortOrder: 3,
+  },
+  {
+    id: "dist_4",
+    label: "Aurangabad District",
+    category: "district",
+    sortOrder: 4,
+  },
+  {
+    id: "dist_5",
+    label: "Nagpur District",
+    category: "district",
+    sortOrder: 5,
+  },
+  {
+    id: "dist_6",
+    label: "Solapur District",
+    category: "district",
+    sortOrder: 6,
+  },
+  // Talukas (with parent district)
+  {
+    id: "tal_1",
+    label: "Nashik",
+    category: "taluka",
+    sortOrder: 1,
+    parentCategory: "district",
+    parentValue: "Nashik District",
+  },
+  {
+    id: "tal_2",
+    label: "Pune",
+    category: "taluka",
+    sortOrder: 2,
+    parentCategory: "district",
+    parentValue: "Pune District",
+  },
+  {
+    id: "tal_3",
+    label: "Kolhapur",
+    category: "taluka",
+    sortOrder: 3,
+    parentCategory: "district",
+    parentValue: "Kolhapur District",
+  },
+  {
+    id: "tal_4",
+    label: "Aurangabad",
+    category: "taluka",
+    sortOrder: 4,
+    parentCategory: "district",
+    parentValue: "Aurangabad District",
+  },
+  {
+    id: "tal_5",
+    label: "Nagpur",
+    category: "taluka",
+    sortOrder: 5,
+    parentCategory: "district",
+    parentValue: "Nagpur District",
+  },
+  {
+    id: "tal_6",
+    label: "Solapur",
+    category: "taluka",
+    sortOrder: 6,
+    parentCategory: "district",
+    parentValue: "Solapur District",
+  },
+  // Wards
+  { id: "ward_1", label: "Ward 1", category: "ward", sortOrder: 1 },
+  { id: "ward_2", label: "Ward 2", category: "ward", sortOrder: 2 },
+  { id: "ward_3", label: "Ward 3", category: "ward", sortOrder: 3 },
+  { id: "ward_4", label: "Ward 4", category: "ward", sortOrder: 4 },
+  { id: "ward_5", label: "Ward 5", category: "ward", sortOrder: 5 },
+  // Booths
+  { id: "booth_1", label: "Booth 1", category: "booth", sortOrder: 1 },
+  { id: "booth_2", label: "Booth 2", category: "booth", sortOrder: 2 },
+  { id: "booth_3", label: "Booth 3", category: "booth", sortOrder: 3 },
+  { id: "booth_4", label: "Booth 4", category: "booth", sortOrder: 4 },
+  { id: "booth_5", label: "Booth 5", category: "booth", sortOrder: 5 },
+  { id: "booth_6", label: "Booth 6", category: "booth", sortOrder: 6 },
+  { id: "booth_7", label: "Booth 7", category: "booth", sortOrder: 7 },
+  { id: "booth_8", label: "Booth 8", category: "booth", sortOrder: 8 },
+  { id: "booth_9", label: "Booth 9", category: "booth", sortOrder: 9 },
+  { id: "booth_10", label: "Booth 10", category: "booth", sortOrder: 10 },
+  // Constituencies
+  {
+    id: "con_1",
+    label: "Nashik Constituency",
+    category: "constituency",
+    sortOrder: 1,
+  },
+  {
+    id: "con_2",
+    label: "Pune Constituency",
+    category: "constituency",
+    sortOrder: 2,
+  },
+  {
+    id: "con_3",
+    label: "Kolhapur Constituency",
+    category: "constituency",
+    sortOrder: 3,
+  },
+  {
+    id: "con_4",
+    label: "Aurangabad Constituency",
+    category: "constituency",
+    sortOrder: 4,
+  },
+  {
+    id: "con_5",
+    label: "Nagpur Constituency",
+    category: "constituency",
+    sortOrder: 5,
+  },
+  {
+    id: "con_6",
+    label: "Solapur Constituency",
+    category: "constituency",
+    sortOrder: 6,
   },
 ];
 
@@ -741,12 +879,31 @@ export function seedDefaultData(): void {
       },
       { id: "prof_8", label: "Retired", category: "profession", sortOrder: 8 },
       ...CASTE_DEFAULTS,
+      ...LOCATION_DEFAULTS,
     ];
     setDropdownOptions(defaultOptions);
   } else {
-    // Migration: add caste defaults if no caste options exist
-    if (!options.some((o) => o.category === "caste")) {
-      setDropdownOptions([...options, ...CASTE_DEFAULTS]);
+    // Migration: merge missing caste/subcaste defaults
+    const hasCaste = options.some((o) => o.category === "caste");
+    const hasSubcaste = options.some((o) => o.category === "subcaste");
+    if (!hasCaste || !hasSubcaste) {
+      // Remove any partial caste/subcaste data and re-add full defaults
+      const cleaned = options.filter(
+        (o) => o.category !== "caste" && o.category !== "subcaste",
+      );
+      setDropdownOptions([...cleaned, ...CASTE_DEFAULTS]);
+    }
+
+    // Migration: merge missing location defaults
+    const hasTaluka = options.some((o) => o.category === "taluka");
+    if (!hasTaluka) {
+      const cleaned = options.filter(
+        (o) =>
+          !["taluka", "district", "ward", "booth", "constituency"].includes(
+            o.category,
+          ),
+      );
+      setDropdownOptions([...cleaned, ...LOCATION_DEFAULTS]);
     }
   }
 

@@ -78,6 +78,6 @@ export const DROPDOWN_CATEGORIES = [
   { value: "professionalCategory", label: "Professional Category" },
   { value: "maritalStatus", label: "Marital Status" },
   { value: "categoryLabel", label: "Category Label" },
-  { value: "caste", label: "Caste" },
+  { value: "caste", label: "Caste Category" },
   { value: "subcaste", label: "Sub Caste" },
 ] as const;

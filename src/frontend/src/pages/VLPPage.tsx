@@ -1614,92 +1614,314 @@ ${
                     </div>
                   )}
 
-                  {/* Charts */}
+                  {/* Charts — respond to erViewBy */}
                   <div className="grid md:grid-cols-2 gap-4">
-                    {/* Bar Chart - Latest Election */}
-                    <div className="bg-white border rounded-xl p-4">
-                      <h4 className="text-sm font-semibold text-[#0b0854] mb-3">
-                        {latestYear} — Votes by Candidate
-                      </h4>
-                      <ResponsiveContainer width="100%" height={200}>
-                        <BarChart
-                          data={latestYearResults.map((r, i) => ({
-                            name:
-                              r.candidateName.length > 10
-                                ? `${r.candidateName.slice(0, 10)}…`
-                                : r.candidateName,
-                            votes: r.votesReceived,
-                            party: r.party,
+                    {erViewBy === "candidate" ? (
+                      // By Candidate: total votes per candidate across all years
+                      (() => {
+                        const candMap: Record<
+                          string,
+                          {
+                            name: string;
+                            party: string;
+                            totalVotes: number;
+                            wins: number;
+                          }
+                        > = {};
+                        for (const r of filteredER) {
+                          const key = r.candidateName;
+                          if (!candMap[key])
+                            candMap[key] = {
+                              name: r.candidateName,
+                              party: r.party,
+                              totalVotes: 0,
+                              wins: 0,
+                            };
+                          candMap[key].totalVotes += r.votesReceived;
+                        }
+                        // Count wins per candidate
+                        const allYears = Array.from(
+                          new Set(filteredER.map((r) => r.year)),
+                        );
+                        for (const yr of allYears) {
+                          const yrResults = filteredER.filter(
+                            (r) => r.year === yr,
+                          );
+                          if (yrResults.length === 0) continue;
+                          const maxV = Math.max(
+                            ...yrResults.map((r) => r.votesReceived),
+                          );
+                          const winner = yrResults.find(
+                            (r) => r.votesReceived === maxV,
+                          );
+                          if (winner && candMap[winner.candidateName])
+                            candMap[winner.candidateName].wins++;
+                        }
+                        const candRows = Object.values(candMap).sort(
+                          (a, b) => b.totalVotes - a.totalVotes,
+                        );
+                        const PARTY_COLORS: Record<string, string> = {
+                          INC: "#1565C0",
+                          BJP: "#FF6600",
+                          NCP: "#4CAF50",
+                          SS: "#9C27B0",
+                          BSP: "#3F51B5",
+                          AAP: "#00BCD4",
+                          IND: "#607D8B",
+                        };
+                        const barData = candRows.map((c, i) => ({
+                          name:
+                            c.name.length > 12
+                              ? `${c.name.slice(0, 12)}…`
+                              : c.name,
+                          fullName: c.name,
+                          votes: c.totalVotes,
+                          wins: c.wins,
+                          party: c.party,
+                          fill:
+                            i === 0
+                              ? "#16a34a"
+                              : i === 1
+                                ? "#dc2626"
+                                : (PARTY_COLORS[c.party] ?? "#607d8b"),
+                        }));
+                        return (
+                          <>
+                            <div className="bg-white border rounded-xl p-4 md:col-span-2">
+                              <h4 className="text-sm font-semibold text-[#0b0854] mb-3">
+                                Total Votes by Candidate (All Years)
+                              </h4>
+                              <ResponsiveContainer width="100%" height={220}>
+                                <BarChart
+                                  data={barData}
+                                  margin={{ bottom: 20 }}
+                                >
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis
+                                    dataKey="name"
+                                    tick={{ fontSize: 10 }}
+                                    interval={0}
+                                    angle={-20}
+                                    textAnchor="end"
+                                  />
+                                  <YAxis tick={{ fontSize: 10 }} />
+                                  <RechartsTooltip
+                                    formatter={(
+                                      v: number,
+                                      _n: string,
+                                      p: {
+                                        payload?: {
+                                          party?: string;
+                                          wins?: number;
+                                        };
+                                      },
+                                    ) => [
+                                      `${v.toLocaleString()} votes — Party: ${p.payload?.party ?? ""} — Wins: ${p.payload?.wins ?? 0}`,
+                                    ]}
+                                  />
+                                  <Bar dataKey="votes" radius={[4, 4, 0, 0]}>
+                                    {barData.map((d, idx) => (
+                                      <Cell
+                                        key={`bar-${d.name}-${idx}`}
+                                        fill={d.fill}
+                                      />
+                                    ))}
+                                  </Bar>
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          </>
+                        );
+                      })()
+                    ) : erViewBy === "party" ? (
+                      // By Party: total votes per party
+                      (() => {
+                        const partyMap: Record<string, number> = {};
+                        for (const r of filteredER) {
+                          partyMap[r.party] =
+                            (partyMap[r.party] ?? 0) + r.votesReceived;
+                        }
+                        const PARTY_COLORS: Record<string, string> = {
+                          INC: "#1565C0",
+                          BJP: "#FF6600",
+                          NCP: "#4CAF50",
+                          SS: "#9C27B0",
+                          BSP: "#3F51B5",
+                          AAP: "#00BCD4",
+                          IND: "#607D8B",
+                        };
+                        const barData = Object.entries(partyMap)
+                          .sort((a, b) => b[1] - a[1])
+                          .map(([party, votes], i) => ({
+                            name: party,
+                            votes,
                             fill:
                               i === 0
                                 ? "#16a34a"
                                 : i === 1
                                   ? "#dc2626"
-                                  : "#607d8b",
-                          }))}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                          <YAxis tick={{ fontSize: 10 }} />
-                          <RechartsTooltip
-                            formatter={(v: number) => [
-                              `${v.toLocaleString()} votes`,
-                            ]}
-                          />
-                          <Bar dataKey="votes" radius={[4, 4, 0, 0]}>
-                            {latestYearResults.map((r, i) => (
-                              <Cell
-                                key={r.id || i}
-                                fill={
+                                  : (PARTY_COLORS[party] ?? "#607d8b"),
+                          }));
+                        return (
+                          <>
+                            <div className="bg-white border rounded-xl p-4">
+                              <h4 className="text-sm font-semibold text-[#0b0854] mb-3">
+                                Total Votes by Party
+                              </h4>
+                              <ResponsiveContainer width="100%" height={200}>
+                                <BarChart data={barData}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis
+                                    dataKey="name"
+                                    tick={{ fontSize: 10 }}
+                                  />
+                                  <YAxis tick={{ fontSize: 10 }} />
+                                  <RechartsTooltip
+                                    formatter={(v: number) => [
+                                      `${v.toLocaleString()} votes`,
+                                    ]}
+                                  />
+                                  <Bar dataKey="votes" radius={[4, 4, 0, 0]}>
+                                    {barData.map((d, idx) => (
+                                      <Cell
+                                        key={`bar-${d.name}-${idx}`}
+                                        fill={d.fill}
+                                      />
+                                    ))}
+                                  </Bar>
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                            {trendData.length > 1 && top2Parties.length >= 2 ? (
+                              <div className="bg-white border rounded-xl p-4">
+                                <h4 className="text-sm font-semibold text-[#0b0854] mb-3">
+                                  Vote Trend — {top2Parties[0]} vs{" "}
+                                  {top2Parties[1]}
+                                </h4>
+                                <ResponsiveContainer width="100%" height={200}>
+                                  <LineChart data={trendData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                      dataKey="year"
+                                      tick={{ fontSize: 10 }}
+                                    />
+                                    <YAxis tick={{ fontSize: 10 }} />
+                                    <RechartsTooltip />
+                                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                                    <Line
+                                      type="monotone"
+                                      dataKey={top2Parties[0]}
+                                      stroke="#16a34a"
+                                      strokeWidth={2.5}
+                                      dot={{ r: 4 }}
+                                      activeDot={{ r: 6 }}
+                                    />
+                                    <Line
+                                      type="monotone"
+                                      dataKey={top2Parties[1]}
+                                      stroke="#dc2626"
+                                      strokeWidth={2.5}
+                                      dot={{ r: 4 }}
+                                      activeDot={{ r: 6 }}
+                                    />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </div>
+                            ) : (
+                              <div className="bg-slate-50 border rounded-xl p-4 flex items-center justify-center text-sm text-muted-foreground">
+                                Add results from multiple years to see trend
+                                chart
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()
+                    ) : (
+                      // By Year (default): latest year bar + trend line
+                      <>
+                        <div className="bg-white border rounded-xl p-4">
+                          <h4 className="text-sm font-semibold text-[#0b0854] mb-3">
+                            {latestYear} — Votes by Candidate
+                          </h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <BarChart
+                              data={latestYearResults.map((r, i) => ({
+                                name:
+                                  r.candidateName.length > 10
+                                    ? `${r.candidateName.slice(0, 10)}…`
+                                    : r.candidateName,
+                                votes: r.votesReceived,
+                                party: r.party,
+                                fill:
                                   i === 0
                                     ? "#16a34a"
                                     : i === 1
                                       ? "#dc2626"
-                                      : "#607d8b"
-                                }
+                                      : "#607d8b",
+                              }))}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                              <YAxis tick={{ fontSize: 10 }} />
+                              <RechartsTooltip
+                                formatter={(v: number) => [
+                                  `${v.toLocaleString()} votes`,
+                                ]}
                               />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    {/* Trend Line Chart */}
-                    {trendData.length > 1 && top2Parties.length >= 2 ? (
-                      <div className="bg-white border rounded-xl p-4">
-                        <h4 className="text-sm font-semibold text-[#0b0854] mb-3">
-                          Vote Trend — {top2Parties[0]} vs {top2Parties[1]}
-                        </h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                          <LineChart data={trendData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="year" tick={{ fontSize: 10 }} />
-                            <YAxis tick={{ fontSize: 10 }} />
-                            <RechartsTooltip />
-                            <Legend wrapperStyle={{ fontSize: 11 }} />
-                            <Line
-                              type="monotone"
-                              dataKey={top2Parties[0]}
-                              stroke="#16a34a"
-                              strokeWidth={2.5}
-                              dot={{ r: 4 }}
-                              activeDot={{ r: 6 }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey={top2Parties[1]}
-                              stroke="#dc2626"
-                              strokeWidth={2.5}
-                              dot={{ r: 4 }}
-                              activeDot={{ r: 6 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    ) : (
-                      <div className="bg-slate-50 border rounded-xl p-4 flex items-center justify-center text-sm text-muted-foreground">
-                        Add results from multiple years to see trend chart
-                      </div>
+                              <Bar dataKey="votes" radius={[4, 4, 0, 0]}>
+                                {latestYearResults.map((r, i) => (
+                                  <Cell
+                                    key={r.id || i}
+                                    fill={
+                                      i === 0
+                                        ? "#16a34a"
+                                        : i === 1
+                                          ? "#dc2626"
+                                          : "#607d8b"
+                                    }
+                                  />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                        {trendData.length > 1 && top2Parties.length >= 2 ? (
+                          <div className="bg-white border rounded-xl p-4">
+                            <h4 className="text-sm font-semibold text-[#0b0854] mb-3">
+                              Vote Trend — {top2Parties[0]} vs {top2Parties[1]}
+                            </h4>
+                            <ResponsiveContainer width="100%" height={200}>
+                              <LineChart data={trendData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="year" tick={{ fontSize: 10 }} />
+                                <YAxis tick={{ fontSize: 10 }} />
+                                <RechartsTooltip />
+                                <Legend wrapperStyle={{ fontSize: 11 }} />
+                                <Line
+                                  type="monotone"
+                                  dataKey={top2Parties[0]}
+                                  stroke="#16a34a"
+                                  strokeWidth={2.5}
+                                  dot={{ r: 4 }}
+                                  activeDot={{ r: 6 }}
+                                />
+                                <Line
+                                  type="monotone"
+                                  dataKey={top2Parties[1]}
+                                  stroke="#dc2626"
+                                  strokeWidth={2.5}
+                                  dot={{ r: 4 }}
+                                  activeDot={{ r: 6 }}
+                                />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        ) : (
+                          <div className="bg-slate-50 border rounded-xl p-4 flex items-center justify-center text-sm text-muted-foreground">
+                            Add results from multiple years to see trend chart
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 
